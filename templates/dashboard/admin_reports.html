@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
+    <div class="max-w-7xl mx-auto space-y-8">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-900">
+                <i class="fa-solid fa-flag text-red-500 ml-2"></i>إدارة البلاغات
+            </h1>
+            <a href="{{ url_for('admin.dashboard') }}"
+               class="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-2">
+                <i class="fa-solid fa-arrow-right"></i> العودة للوحة التحكم
+            </a>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-right">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">المُبلِغ</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">المُبلَغ عنه</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">السبب</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">التاريخ</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">الحالة</th>
+                            <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for report in reports %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+
+                            <!-- Reporter -->
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ report.reporter.username }}</div>
+                                <div class="text-xs text-gray-400">{{ report.reporter.email }}</div>
+                            </td>
+
+                            <!-- Reported User -->
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="text-sm font-semibold text-red-600">{{ report.reported_user.username }}</div>
+                                <div class="text-xs text-gray-400">{{ report.reported_user.email }}</div>
+                                {% if report.reported_user.banned_until and report.reported_user.banned_until > now %}
+                                <span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                    <i class="fa-solid fa-ban text-[10px]"></i>
+                                    محظور حتى
+                                    {% if report.reported_user.banned_until.year == 9999 %}
+                                        الأبد
+                                    {% else %}
+                                        {{ report.reported_user.banned_until.strftime('%Y-%m-%d') }}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Reason -->
+                            <td class="px-4 py-4 max-w-xs">
+                                <div class="text-sm text-gray-700 truncate" title="{{ report.reason }}">
+                                    {{ report.reason }}
+                                </div>
+                            </td>
+
+                            <!-- Date -->
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ report.created_at.strftime('%Y-%m-%d') }}
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    {% if report.status == 'pending' %} bg-yellow-100 text-yellow-800
+                                    {% elif report.status == 'resolved' %} bg-green-100 text-green-800
+                                    {% else %} bg-gray-100 text-gray-600 {% endif %}">
+                                    {% if report.status == 'pending' %}قيد الانتظار
+                                    {% elif report.status == 'resolved' %}تم الحل
+                                    {% else %}تم التجاهل{% endif %}
+                                </span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="flex flex-wrap gap-2 items-center">
+                                    {% if report.status == 'pending' %}
+                                    <!-- Resolve -->
+                                    <form action="{{ url_for('admin.resolve_report', id=report.id) }}" method="POST">
+                                        <input type="hidden" name="action" value="resolved">
+                                        <button type="submit"
+                                            class="text-xs px-2 py-1 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 font-medium transition">
+                                            <i class="fa-solid fa-check ml-1"></i>تم الحل
+                                        </button>
+                                    </form>
+                                    <!-- Dismiss -->
+                                    <form action="{{ url_for('admin.resolve_report', id=report.id) }}" method="POST">
+                                        <input type="hidden" name="action" value="dismissed">
+                                        <button type="submit"
+                                            class="text-xs px-2 py-1 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 font-medium transition">
+                                            <i class="fa-solid fa-xmark ml-1"></i>تجاهل
+                                        </button>
+                                    </form>
+                                    <!-- Ban Button -->
+                                    <button type="button"
+                                        onclick="openBanModal({{ report.reported_user_id }}, '{{ report.reported_user.username }}', {{ report.id }})"
+                                        class="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-medium transition">
+                                        <i class="fa-solid fa-ban ml-1"></i>حظر
+                                    </button>
+                                    {% endif %}
+
+                                    <!-- Unban if currently banned -->
+                                    {% if report.reported_user.banned_until and report.reported_user.banned_until > now %}
+                                    <form action="{{ url_for('admin.unban_user', user_id=report.reported_user_id) }}" method="POST"
+                                          onsubmit="return swalConfirm(this, 'رفع الحظر عن المستخدم؟', 'هل أنت متأكد من رغبتك في رفع الحظر عن {{ report.reported_user.username }}؟', 'question')">
+                                        <button type="submit"
+                                            class="text-xs px-2 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium transition">
+                                            <i class="fa-solid fa-unlock ml-1"></i>رفع الحظر
+                                        </button>
+                                    </form>
+                                    {% endif %}
+
+                                    <!-- Profile link -->
+                                    <a href="{{ url_for('auth.view_profile', user_id=report.reported_user_id) }}"
+                                        class="text-xs px-2 py-1 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 font-medium transition">
+                                        <i class="fa-solid fa-user ml-1"></i>الملف
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if not reports %}
+            <div class="p-16 text-center">
+                <i class="fa-solid fa-check-circle text-6xl text-green-200 mb-4 block"></i>
+                <p class="text-gray-500 text-lg">لا توجد بلاغات حالياً</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_content %}
+<!-- ============================================================
+     BAN MODAL
+     ============================================================ -->
+<div id="banModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm"
+     onclick="closeBanModal(event)">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onclick="event.stopPropagation()">
+
+        <!-- Modal Header -->
+        <div class="bg-red-600 px-6 py-4 flex items-center justify-between">
+            <h2 class="text-white text-lg font-bold">
+                <i class="fa-solid fa-ban ml-2"></i>تطبيق عقوبة الحظر
+            </h2>
+            <button onclick="closeBanModal()" class="text-white/80 hover:text-white text-xl leading-none">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <form id="banForm" method="POST" action="">
+            <input type="hidden" name="report_id" id="banReportId">
+            <div class="p-6 space-y-5" dir="rtl">
+
+                <!-- User info -->
+                <div class="flex items-center gap-3 p-3 bg-red-50 rounded-xl">
+                    <div class="w-10 h-10 rounded-full bg-red-200 flex items-center justify-center">
+                        <i class="fa-solid fa-user text-red-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">المستخدم المُبلَّغ عنه</p>
+                        <p class="font-bold text-gray-900" id="banUsername">—</p>
+                    </div>
+                </div>
+
+                <!-- Duration -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">
+                        <i class="fa-solid fa-clock ml-1 text-red-500"></i>مدة الحظر
+                    </label>
+                    <div class="grid grid-cols-2 gap-2" id="durationGrid">
+                        {% set durations = [
+                            ('1h',        'ساعة واحدة',   'fa-hourglass-start'),
+                            ('24h',       '24 ساعة',       'fa-hourglass-half'),
+                            ('48h',       '48 ساعة',       'fa-hourglass-end'),
+                            ('7d',        '7 أيام',        'fa-calendar-week'),
+                            ('30d',       '30 يوماً',      'fa-calendar-alt'),
+                            ('permanent', 'حظر دائم',      'fa-ban'),
+                        ] %}
+                        {% for val, label, icon in durations %}
+                        <label class="duration-option cursor-pointer flex items-center gap-2 p-3 rounded-xl border-2 border-gray-200
+                                      hover:border-red-400 hover:bg-red-50 transition-all has-[:checked]:border-red-500 has-[:checked]:bg-red-50">
+                            <input type="radio" name="duration" value="{{ val }}" class="accent-red-500 hidden" required>
+                            <i class="fa-solid {{ icon }} text-red-400 text-sm"></i>
+                            <span class="text-sm font-medium text-gray-700">{{ label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Custom Reason -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        سبب الحظر <span class="text-gray-400 font-normal">(اختياري)</span>
+                    </label>
+                    <textarea name="reason" rows="3"
+                              placeholder="اتركه فارغاً لاستخدام السبب الافتراضي..."
+                              class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700
+                                     focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 pb-6 flex gap-3 justify-end">
+                <button type="button" onclick="closeBanModal()"
+                        class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-600 text-sm font-medium hover:bg-gray-50 transition">
+                    إلغاء
+                </button>
+                <button type="submit"
+                        class="px-5 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition shadow-md flex items-center gap-2">
+                    <i class="fa-solid fa-ban"></i> تطبيق الحظر
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function openBanModal(userId, username, reportId) {
+    document.getElementById('banUsername').textContent = username;
+    document.getElementById('banReportId').value = reportId;
+    document.getElementById('banForm').action = `/admin/ban_user/${userId}`;
+
+    // Clear previous selection
+    document.querySelectorAll('#durationGrid input[type=radio]').forEach(r => r.checked = false);
+
+    const modal = document.getElementById('banModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeBanModal(event) {
+    if (event && event.target !== document.getElementById('banModal')) return;
+    const modal = document.getElementById('banModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// Highlight selected duration card
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'duration') {
+        document.querySelectorAll('.duration-option').forEach(el => {
+            el.classList.remove('border-red-500', 'bg-red-50');
+            el.classList.add('border-gray-200');
+        });
+        const label = e.target.closest('.duration-option');
+        if (label) {
+            label.classList.add('border-red-500', 'bg-red-50');
+            label.classList.remove('border-gray-200');
+        }
+    }
+});
+</script>
+{% endblock %}
+

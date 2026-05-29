@@ -1,0 +1,46 @@
+<div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white z-10">
+    <div class="flex items-center gap-4">
+        <a href="{{ url_for('chat.list') }}" class="text-gray-400 hover:text-gray-600 transition">
+            <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <div class="flex items-center gap-3">
+            <img src="https://ui-avatars.com/api/?name={{ other_user.username }}&background=EBF5FF&color=2563EB"
+                class="w-10 h-10 rounded-full border border-gray-200">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900">
+                    {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('auth.view_profile', user_id=other_user.id) }}" class="hover:text-primary-600 transition">{{ other_user.username }}</a>
+                    {% else %}
+                    {{ other_user.username }}
+                    {% endif %}
+                </h2>
+                <p class="text-xs text-green-500 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span> متصل الآن
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="flex gap-2 text-primary-600 items-center">
+
+        <div class="relative">
+            <button onclick="toggleMenu('optionsMenu')"
+                class="w-10 h-10 rounded-full hover:bg-gray-50 transition flex items-center justify-center focus:outline-none">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+            <div id="optionsMenu"
+                class="absolute left-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-lg hidden z-50 overflow-hidden">
+                <button onclick="openReportModal(); toggleMenu('optionsMenu')"
+                    class="w-full text-right block px-4 py-3 hover:bg-gray-50 text-sm font-medium border-b border-gray-50 text-gray-700 focus:outline-none">
+                    <i class="fa-solid fa-flag ml-2"></i> إبلاغ عن المستخدم
+                </button>
+                <form id="blockUserForm" action="{{ url_for('user.block_user', user_id=other_user.id) }}" method="POST">
+                    <button type="button"
+                        onclick="confirmBlock()"
+                        class="w-full text-right block px-4 py-3 hover:bg-red-50 text-sm font-medium text-red-600 focus:outline-none">
+                        <i class="fa-solid fa-ban ml-2"></i> حظر المستخدم
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
+    <div class="max-w-3xl mx-auto space-y-8">
+
+        <!-- Profile Header -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-primary-600 h-32 w-full"></div>
+            <div class="px-6 sm:px-10 pb-8 relative">
+                <div class="-mt-16 sm:-mt-20 mb-4 flex justify-between items-end">
+                    {% if user.profile_image %}
+                        <img src="{{ user.profile_image }}"
+                            alt="{{ user.username }}"
+                            class="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-lg bg-white object-cover">
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=EBF5FF&color=2563EB&size=150"
+                            alt="Profile Picture"
+                            class="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-lg bg-white">
+                    {% endif %}
+                    
+                    <div class="flex gap-2 mb-2">
+                    {% if current_user.is_authenticated and current_user.id == user.id %}
+                    <a href="{{ url_for('auth.edit_profile') }}"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition shadow-sm inline-flex items-center">
+                        <i class="fa-solid fa-pen ml-2"></i> تعديل ملفي
+                    </a>
+                    {% elif current_user.is_authenticated %}
+                    <a href="{{ url_for('chat.talk', user_id=user.id) }}"
+                        class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition shadow-sm inline-flex items-center">
+                        <i class="fa-solid fa-comment-dots ml-2"></i> مراسلة
+                    </a>
+                    
+                    <!-- Block/Unblock Button -->
+                    {% set is_blocked = current_user.blocks_made|selectattr('blocked_id', 'equalto', user.id)|list %}
+                    {% if is_blocked %}
+                    <form action="{{ url_for('user.unblock_user', user_id=user.id) }}" method="POST">
+                        <button type="submit" class="px-4 py-2 border border-green-300 text-green-700 rounded-lg text-sm font-medium hover:bg-green-50 transition shadow-sm inline-flex items-center">
+                            <i class="fa-solid fa-user-check ml-2"></i> إلغاء الحظر
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('user.block_user', user_id=user.id) }}" method="POST">
+                        <button type="submit" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition shadow-sm inline-flex items-center">
+                            <i class="fa-solid fa-user-slash ml-2"></i> حظر
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <button onclick="openReportModal()" class="px-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition shadow-sm inline-flex items-center">
+                        <i class="fa-solid fa-triangle-exclamation ml-2"></i> إبلاغ
+                    </button>
+                    {% endif %}
+                    
+                    {% if current_user.is_authenticated and current_user.role == 'admin' and current_user.id != user.id %}
+                    <a href="{{ url_for('chat.talk', user_id=user.id) }}"
+                        class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition shadow-sm inline-flex items-center">
+                        <i class="fa-solid fa-comment-dots ml-2"></i> مراسلة المستخدم
+                    </a>
+                    {% endif %}
+                    </div>
+                </div>
+
+                <h1 class="text-3xl font-bold text-gray-900">{{ user.username }}</h1>
+                <p class="text-gray-500 mt-1 flex items-center gap-2">
+                    <i class="fa-solid fa-envelope"></i> {{ user.email }}
+                </p>
+
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-50 text-primary-700 border border-primary-100">
+                        <i class="fa-solid fa-user-tag ml-1.5"></i>
+                        {% if user.role == 'admin' %} مدير النظام
+                        {% elif user.role == 'homeowner' %} مالك سكن
+                        {% else %} مستأجر {% endif %}
+                    </span>
+
+                    {% if user.is_verified %}
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-100">
+                        <i class="fa-solid fa-circle-check ml-1.5"></i> هوية موثقة
+                    </span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-50 text-yellow-700 border border-yellow-100">
+                        <i class="fa-solid fa-clock ml-1.5"></i> بانتظار التوثيق
+                    </span>
+                    {% endif %}
+                    
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        <i class="fa-solid fa-star ml-1.5"></i> الموثوقية: {{ user.reliability_score }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+            <!-- Personal Info Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 w-full">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fa-solid fa-id-card text-primary-500"></i> البيانات الشخصية
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <dl class="space-y-4">
+                        <div class="flex justify-between border-b pb-3">
+                            <dt class="text-sm font-medium text-gray-500">الجنس</dt>
+                            <dd class="text-sm font-semibold text-gray-900">{{ 'ذكر' if user.gender == 'male'
+                                else 'أنثى' if user.gender == 'female' else 'غير محدد' }}</dd>
+                        </div>
+                        <div class="flex justify-between border-b pb-3">
+                            <dt class="text-sm font-medium text-gray-500">المهنة / الصفة</dt>
+                            <dd class="text-sm font-semibold text-gray-900">{{ 'طالب' if user.occupation ==
+                                'student' else 'موظف' if user.occupation == 'employee' else 'غير محدد' }}</dd>
+                        </div>
+                        <div class="flex justify-between border-b pb-3">
+                            <dt class="text-sm font-medium text-gray-500">التدخين</dt>
+                            <dd class="text-sm font-semibold text-gray-900">{{ 'مدخن' if user.smoker else 'غير مدخن' }}</dd>
+                        </div>
+                        <div class="flex justify-between border-b pb-3">
+                            <dt class="text-sm font-medium text-gray-500">مواعيد النوم</dt>
+                            <dd class="text-sm font-semibold text-gray-900">{{ 'مبكر' if user.sleep_schedule == 'early' else 'متأخر' if user.sleep_schedule == 'late' else 'غير محدد' }}</dd>
+                        </div>
+                        <div class="flex justify-between border-b pb-3">
+                            <dt class="text-sm font-medium text-gray-500">طبيعة الشخصية</dt>
+                            <dd class="text-sm font-semibold text-gray-900">{{ 'اجتماعي' if user.personality == 'social' else 'هادئ' if user.personality == 'quiet' else 'غير محدد' }}</dd>
+                        </div>
+
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Stats/Listings Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 w-full overflow-hidden">
+                <div class="p-6 border-b border-gray-100 bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-900">إحصائيات المنصة</h3>
+                </div>
+                <div class="p-6 space-y-6">
+                    {% if user.role == 'homeowner' %}
+                    <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-4">
+                        <span class="text-gray-600">حجوزات ناجحة (مستلمة):</span>
+                        <span class="text-2xl font-black text-green-600">{{ owner_bookings_count }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">إعلانات نشطة:</span>
+                        <span class="text-2xl font-black text-primary-600">{{ user_listings|length }}</span>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-sm font-bold text-gray-900 mb-2">آخر المساكن المدرجة:</p>
+                        <ul class="space-y-2">
+                            {% for listing in user_listings[:3] %}
+                            <li class="text-xs text-gray-500 flex items-center gap-2">
+                                <i class="fa-solid fa-house-circle-check text-green-500"></i>
+                                <a href="{{ url_for('listings.detail', id=listing.id) }}" class="hover:underline">{{ listing.title }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">حجوزات ناجحة (تمت الموافقة):</span>
+                        <span class="text-2xl font-black text-green-600">{{ confirmed_tenant_bookings }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_content %}
+<!-- Report Modal -->
+<div id="report-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeReportModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-2xl text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <form action="{{ url_for('user.report_user', user_id=user.id) }}" method="POST">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:text-right w-full">
+                            <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                                الإبلاغ عن {{ user.username }}
+                            </h3>
+                            <div class="mt-4">
+                                <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">سبب الإبلاغ</label>
+                                <textarea name="reason" id="reason" rows="4" required
+                                    class="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-xl"
+                                    placeholder="يرجى شرح سبب البلاغ بوضوح لمساعدة الإدارة في اتخاذ الإجراء المناسب..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition">
+                        إرسال البلاغ
+                    </button>
+                    <button type="button" onclick="closeReportModal()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function openReportModal() {
+    document.getElementById('report-modal').classList.remove('hidden');
+}
+function closeReportModal() {
+    document.getElementById('report-modal').classList.add('hidden');
+}
+</script>
+{% endblock %}

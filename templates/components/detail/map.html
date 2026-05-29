@@ -1,0 +1,13 @@
+<div class="mt-10 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+        <i class="fa-solid fa-map-location-dot ml-2 text-primary-600"></i> موقع السكن
+    </h3>
+    <!-- Map Data Container -->
+    <div id="map-data" class="hidden" 
+         data-lat="{{ listing.latitude or '' }}" 
+         data-lng="{{ listing.longitude or '' }}"
+         data-city="{{ listing.city }}"
+         data-title="{{ listing.title }}"></div>
+         
+    <div id="map" class="h-80 w-full rounded-xl border border-gray-100 z-0"></div>
+</div>

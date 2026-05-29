@@ -1,0 +1,61 @@
+<div class="bg-white rounded-lg shadow-lg border border-gray-200 p-6 sticky top-24">
+    <h3 class="text-lg font-bold text-gray-900 mb-4">مهتم بهذه الغرفة؟</h3>
+
+    {% if current_user.is_authenticated %}
+    {% if current_user.id == listing.owner_id %}
+    <div class="text-center p-4 bg-blue-50 rounded border border-blue-200 text-blue-800 text-sm">
+        هذا هو إعلانك الخاص
+    </div>
+    {% elif current_user.role == 'student' %}
+        {% if current_user.is_verified %}
+        <form action="{{ url_for('booking.book_listing', id=listing.id) }}" method="POST">
+            <button type="submit"
+                class="w-full bg-primary-600 text-white py-3 rounded-lg font-bold hover:bg-primary-700 transition shadow-lg shadow-primary-500/40 mb-3 block text-center"
+                onclick="return swalConfirm(this.form, 'تأكيد الحجز؟', 'سيتم إرسال طلبك للمالك للموافقة بعد الدفع.', 'question')">
+                طلب حجز الآن
+            </button>
+        </form>
+        {% else %}
+        <div class="bg-yellow-50 text-yellow-800 p-4 rounded-lg border border-yellow-200 text-xs font-bold mb-3 text-center">
+            <i class="fa-solid fa-lock ml-1"></i> يرجى رفع صورة البطاقة وتوثيق حسابك لتتمكن من الحجز.
+        </div>
+        {% endif %}
+
+    <a href="{{ url_for('chat.talk', user_id=listing.owner.id) }}"
+        class="w-full bg-white text-primary-600 border border-primary-600 py-3 rounded-lg font-bold hover:bg-primary-50 transition mb-3 block text-center">
+        <i class="fa-regular fa-comment-dots ml-2"></i>مراسلة المالك (محادثة داخلية)
+    </a>
+    {% elif current_user.role == 'homeowner' %}
+    <div class="text-center p-4 bg-yellow-50 rounded border border-yellow-200 text-yellow-800 text-sm">
+        عذراً، يجب تسجيل حساب "مستأجر" لتتمكن من الحجز. حساب المالك للعرض فقط.
+    </div>
+    <a href="{{ url_for('chat.talk', user_id=listing.owner.id) }}"
+        class="w-full bg-white text-primary-600 border border-primary-600 py-3 rounded-lg font-bold hover:bg-primary-50 transition mb-3 block text-center">
+        <i class="fa-regular fa-comment-dots ml-2"></i>مراسلة المالك (محادثة داخلية)
+    </a>
+    {% elif current_user.role == 'admin' %}
+    <div class="p-4 bg-red-50 rounded-xl border border-red-200 text-red-800 text-sm mb-3 shadow-inner">
+        <p class="font-black mb-3 text-center text-red-900 border-b border-red-200 pb-2">
+            <i class="fa-solid fa-shield-halved ml-1"></i> صلاحيات الإدارة
+        </p>
+        <form action="{{ url_for('listings.delete', id=listing.id) }}" method="POST" onsubmit="return swalConfirm(this, 'حذف الإعلان؟', 'سيتم مسح هذا الإعلان وكافة البيانات المتعلقة به من قاعدة البيانات نهائياً.', 'error');">
+            <button type="submit" class="w-full bg-red-600 text-white py-2.5 rounded-lg font-bold hover:bg-red-700 transition shadow-md flex items-center justify-center gap-2">
+                <i class="fa-solid fa-trash"></i> حذف الإعلان نهائياً
+            </button>
+        </form>
+    </div>
+    {% else %}
+    <div class="text-center p-4 bg-yellow-50 rounded border border-yellow-200 text-yellow-800 text-sm">
+        حسابك لا يسمح بالحجز
+    </div>
+    {% endif %}
+    {% else %}
+    <a href="{{ url_for('auth.login') }}"
+        class="block w-full text-center bg-primary-600 text-white py-3 rounded-lg font-bold hover:bg-primary-700 transition">
+        سجل دخول للحجز
+    </a>
+    <p class="text-sm text-gray-500 text-center mt-3">التسجيل مجاني ويأخذ دقيقة واحدة</p>
+    {% endif %}
+
+    {% include "components/detail/owner_card.html" %}
+</div>

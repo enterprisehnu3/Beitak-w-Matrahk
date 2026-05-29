@@ -1,0 +1,42 @@
+/* Beitak W Matrahk - Main Stylesheet */
+/* This file is intended for custom styles that are not handled by Tailwind CSS */
+
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #64748b;
+}
+
+body {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom Scrollbar for modern look */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Glassmorphism Utilities */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* RTL Specific fixes if needed */
+[dir="rtl"] .fa-chevron-right {
+    transform: rotate(180deg);
+}

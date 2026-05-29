@@ -1,0 +1,55 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title | default('بيتك و مطرحك | منصة السكن المشترك الأولى في مصر') }}</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    cairo: ['Cairo', 'sans-serif'],
+                },
+                colors: {
+                    primary: {
+                        50: '#eff6ff',
+                        100: '#dbeafe',
+                        500: '#3b82f6',
+                        600: '#2563eb',
+                        700: '#1d4ed8',
+                    },
+                    secondary: '#64748b',
+                }
+            }
+        }
+    }
+</script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Custom Styles -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+<style>
+    body {
+        font-family: 'Cairo', sans-serif;
+        letter-spacing: normal !important;
+    }
+    .tracking-tight, .tracking-tighter, .tracking-wide, .tracking-wider, .tracking-widest {
+        letter-spacing: normal !important;
+    }
+</style>
+<!-- PWA Settings -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="بيتك">
+<link rel="apple-touch-icon" href="/static/img/logo.png">

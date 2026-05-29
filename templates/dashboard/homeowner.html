@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">لوحة تحكم المؤجر</h1>
+        <div class="flex items-center gap-4">
+            {% include "components/dashboard/wallet_box.html" %}
+            {% include "components/dashboard/reliability_box.html" %}
+            {% include "components/dashboard/homeowner_actions.html" %}
+        </div>
+    </div>
+
+    <!-- Latest Notifications -->
+    {% include "components/notifications.html" %}
+
+    <!-- Listings Management -->
+    {% include "components/dashboard/listings_table.html" %}
+
+    <!-- Incoming Booking Requests -->
+    {% include "components/dashboard/incoming_bookings.html" %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8" dir="rtl">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <!-- Header -->
+            <div class="px-6 py-5 border-b border-gray-100 bg-white">
+                <h1 class="text-2xl font-bold text-gray-900">الرسائل</h1>
+                <p class="text-sm text-gray-500 mt-1">تواصل مع الملاك والمستأجرين</p>
+            </div>
+
+            <!-- Chat List -->
+            <div class="divide-y divide-gray-100">
+                {% if chat_users %}
+                {% for user in chat_users %}
+                <a href="{{ url_for('chat.talk', user_id=user.id) }}"
+                    class="block hover:bg-gray-50 transition p-6 relative {% if unread_counts[user.id] > 0 %}bg-red-50/20{% endif %}">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=EBF5FF&color=2563EB"
+                                class="w-14 h-14 rounded-full border border-gray-200 shadow-sm">
+                            {% if unread_counts[user.id] > 0 %}
+                            <span class="absolute -top-1 -right-1 flex h-5 w-5">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span
+                                    class="relative inline-flex rounded-full h-5 w-5 bg-red-500 border-2 border-white text-[10px] text-white items-center justify-center font-bold">{{
+                                    unread_counts[user.id] }}</span>
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1">
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-lg font-bold text-gray-900 truncate">{{ user.username }}</h2>
+                                    {% if current_user.role == 'admin' %}
+                                    <span onclick="event.preventDefault(); window.location.href='{{ url_for('auth.view_profile', user_id=user.id) }}';" 
+                                       class="text-[10px] bg-primary-100 text-primary-600 px-2 py-0.5 rounded-full hover:bg-primary-600 hover:text-white transition cursor-pointer">بروفايل</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full flex-shrink-0 mr-4">{{ 'مستأجر' if user.role == 'student' else 'مالك' if user.role == 'homeowner' else user.role }}</span>
+                            </div>
+                            <p
+                                class="text-sm {% if unread_counts[user.id] > 0 %}text-red-600 font-bold{% else %}text-gray-600{% endif %} flex items-center gap-2">
+                                <i
+                                    class="fa-regular fa-comment-dots {% if unread_counts[user.id] > 0 %}text-red-400{% else %}text-gray-400{% endif %}"></i>
+                                {% if unread_counts[user.id] > 0 %}لديك {{ unread_counts[user.id] }} رسالة جديدة لم
+                                تقرأها{% else %}اضغط لفتح المحادثة{% endif %}
+                            </p>
+                        </div>
+                        <div class="flex-shrink-0 text-gray-400">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-20 px-6">
+                    <div class="bg-gray-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-regular fa-comments text-4xl text-gray-300"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">لا توجد رسائل بعد</h3>
+                    <p class="text-gray-500 text-sm max-w-sm mx-auto">
+                        لم تقم ببدء أي محادثات حتى الآن. يمكنك مراسلة الملاك من خلال صفحات تفاصيل الإعلانات.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

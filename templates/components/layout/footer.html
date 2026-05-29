@@ -1,0 +1,87 @@
+<footer class="relative bg-[#0b0f19] text-gray-300 pt-10 pb-6 overflow-hidden font-cairo" dir="rtl">
+    <!-- Background Glow Effects -->
+    <div class="absolute top-0 left-1/4 w-72 h-72 bg-primary-600/5 rounded-full blur-[100px] -z-10"></div>
+    <div class="absolute bottom-0 right-1/4 w-72 h-72 bg-blue-600/5 rounded-full blur-[100px] -z-10"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Middle Section: Links -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 py-6">
+            <!-- Brand Info -->
+            <div class="lg:col-span-1 space-y-4">
+                <a href="{{ url_for('main.index') }}" class="flex items-center gap-2 group">
+                    <div class="bg-white p-1 rounded-lg shadow-lg group-hover:scale-105 transition-transform duration-300">
+                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="h-8 w-auto">
+                    </div>
+                    <span class="text-xl font-black text-white tracking-tight">بيتك و مطرحك</span>
+                </a>
+                <p class="text-gray-400 leading-relaxed text-xs">
+                    المنصة الأولى في مصر للسكن المشترك، نوفر بيئة آمنة للمستأجرين للبحث عن سكن مناسب.
+                </p>
+                <!-- Social Media -->
+                <div class="flex gap-2">
+                    <a href="#" class="w-7 h-7 rounded-full bg-gray-800/50 flex items-center justify-center hover:bg-primary-600 hover:text-white transition-all border border-gray-700/50">
+                        <i class="fa-brands fa-facebook-f text-[10px]"></i>
+                    </a>
+                    <a href="#" class="w-7 h-7 rounded-full bg-gray-800/50 flex items-center justify-center hover:bg-gradient-to-tr from-yellow-500 via-red-500 to-purple-500 hover:text-white transition-all border border-gray-700/50">
+                        <i class="fa-brands fa-instagram text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="space-y-4">
+                <h4 class="text-white font-bold text-base relative inline-block">
+                    روابط سريعة
+                    <span class="absolute -bottom-1 right-0 w-6 h-0.5 bg-primary-600 rounded-full"></span>
+                </h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="{{ url_for('main.about') }}" class="hover:text-primary-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-left text-[8px]"></i> عن المنصة</a></li>
+                    <li><a href="{{ url_for('main.terms') }}" class="hover:text-primary-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-left text-[8px]"></i> الشروط والأحكام</a></li>
+                    <li><a href="{{ url_for('main.privacy') }}" class="hover:text-primary-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-left text-[8px]"></i> سياسة الخصوصية</a></li>
+                </ul>
+            </div>
+
+            <!-- Services -->
+            <div class="space-y-4">
+                <h4 class="text-white font-bold text-base relative inline-block">
+                    خدماتنا
+                    <span class="absolute -bottom-1 right-0 w-6 h-0.5 bg-primary-600 rounded-full"></span>
+                </h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="{{ url_for('listings.browse') }}" class="hover:text-primary-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-left text-[8px]"></i> البحث عن سكن</a></li>
+                    <li><a href="{{ url_for('listings.create') }}" class="hover:text-primary-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-left text-[8px]"></i> إضافة سكن</a></li>
+                    <li><a href="#" class="hover:text-primary-400 transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-left text-[8px]"></i> سكن المستأجرين</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="space-y-4">
+                <h4 class="text-white font-bold text-base relative inline-block">
+                    تواصل معنا
+                    <span class="absolute -bottom-1 right-0 w-6 h-0.5 bg-primary-600 rounded-full"></span>
+                </h4>
+                <ul class="space-y-2 text-xs">
+                    <li class="flex items-center gap-2">
+                        <div class="bg-gray-800 p-1.5 rounded-md text-primary-500"><i class="fa-solid fa-phone text-[10px]"></i></div>
+                        <a href="tel:+201000000000" class="text-gray-400 hover:text-white transition">+20 100 000 0000</a>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <div class="bg-gray-800 p-1.5 rounded-md text-primary-500"><i class="fa-solid fa-envelope text-[10px]"></i></div>
+                        <a href="mailto:info@beitak.com" class="text-gray-400 hover:text-white transition">info@beitak.com</a>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <div class="bg-gray-800 p-1.5 rounded-md text-green-500"><i class="fa-brands fa-whatsapp text-[10px]"></i></div>
+                        <a href="https://wa.me/201000000000" class="text-gray-400 hover:text-white transition">واتساب</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="pt-6 mt-4 border-t border-gray-800/50 text-center">
+            <p class="text-[10px] text-gray-500">
+                &copy; {{ now.year }} <span class="text-white font-bold">بيتك و مطرحك</span>. جميع الحقوق محفوظة.
+            </p>
+        </div>
+    </div>
+</footer>

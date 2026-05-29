@@ -1,0 +1,15 @@
+<nav class="flex mb-4 text-sm text-gray-500" aria-label="Breadcrumb">
+    <ol class="flex items-center space-x-reverse space-x-2">
+        <li><a href="{{ url_for('main.index') }}" class="hover:text-gray-700">الرئيسية</a></li>
+        {% if breadcrumbs %}
+            {% for crumb in breadcrumbs %}
+            <li><i class="fa-solid fa-chevron-left text-xs"></i></li>
+            {% if crumb.link %}
+            <li><a href="{{ crumb.link }}" class="hover:text-gray-700">{{ crumb.text }}</a></li>
+            {% else %}
+            <li class="text-gray-900 font-medium" aria-current="page">{{ crumb.text }}</li>
+            {% endif %}
+            {% endfor %}
+        {% endif %}
+    </ol>
+</nav>

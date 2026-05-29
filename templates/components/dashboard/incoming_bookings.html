@@ -1,0 +1,113 @@
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+    <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">طلبات الحجز الواردة</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">متابعة طلبات السكن الجديدة.</p>
+    </div>
+    {% if bookings %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        مستأجر</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        الغرفة</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        التاريخ</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        الحالة</th>
+                    <th scope="col" class="relative px-6 py-3"><span class="sr-only">إجراء</span></th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for booking in bookings %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <a href="{{ url_for('auth.view_profile', user_id=booking.tenant.id) }}">
+                                    <img class="h-10 w-10 rounded-full hover:ring-2 hover:ring-primary-500 transition"
+                                        src="https://ui-avatars.com/api/?name={{ booking.tenant.username }}&background=random"
+                                        alt="">
+                                </a>
+                            </div>
+                            <div class="mr-4">
+                                <div class="text-sm font-medium text-gray-900">
+                                    <a href="{{ url_for('auth.view_profile', user_id=booking.tenant.id) }}" class="hover:text-primary-600 transition">
+                                        {{ booking.tenant.username }}
+                                    </a>
+                                </div>
+                                <div class="text-sm text-gray-500">{{ 'مستأجر' if booking.tenant.role == 'student' else 'موظف' if booking.tenant.role == 'employee' else booking.tenant.role }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ booking.listing.title }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ booking.booking_date.strftime('%Y-%m-%d') }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if booking.status == 'pending' %}
+                        <span
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            تم الدفع / بانتظار موافقتك
+                        </span>
+                        {% elif booking.status == 'pending_payment' %}
+                        <span
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            المستأجر لم يدفع بعد
+                        </span>
+                        {% elif booking.status == 'confirmed' %}
+                        <span
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            مؤكد
+                        </span>
+                        {% elif booking.status == 'cancelled' %}
+                        <span
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                            ملغي
+                        </span>
+                        {% elif booking.status == 'rejected' %}
+                        <span
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            مرفوض
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                        {% if booking.status == 'pending' %}
+                        <div class="flex justify-end gap-2">
+                            <form action="{{ url_for('booking.approve', id=booking.id) }}" method="POST">
+                                <button type="submit"
+                                    class="text-green-600 hover:text-green-900 font-bold bg-transparent border border-green-200 px-3 py-1 rounded hover:bg-green-50 transition">قبول</button>
+                            </form>
+                            <form action="{{ url_for('booking.reject', id=booking.id) }}" method="POST"
+                                onsubmit="return swalConfirm(this, 'رفض الطلب؟', 'سيتم إبلاغ المستأجر برفض طلبه.', 'warning');">
+                                <button type="submit"
+                                    class="text-red-600 hover:text-red-900 font-bold bg-transparent border border-red-200 px-3 py-1 rounded hover:bg-red-50 transition">رفض</button>
+                            </form>
+                        </div>
+                        {% elif booking.status == 'confirmed' %}
+                        <form action="{{ url_for('booking.cancel', id=booking.id) }}" method="POST" onsubmit="return swalConfirm(this, 'تأكيد الإلغاء؟', 'سيتم خصم نقاط من موثوقيتك وقد تطبق غرامة.', 'warning')">
+                            <button type="submit" class="text-red-500 hover:text-red-700 text-xs underline">إلغاء حجز مؤكد</button>
+                        </form>
+                        {% else %}
+                        <span class="text-gray-400 text-xs">تم الإجراء</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-8 text-center text-gray-500">
+        لا توجد طلبات حجز معلقة.
+    </div>
+    {% endif %}
+</div>

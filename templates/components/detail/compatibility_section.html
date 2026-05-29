@@ -1,0 +1,12 @@
+{% if current_user.is_authenticated and compatibility != "N/A" %}
+<div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6 flex items-center justify-between">
+    <div>
+        <h3 class="font-bold text-blue-900 text-lg">نسبة التوافق معك</h3>
+        <p class="text-sm text-blue-700">بناءً على تفضيلاتك (التدخين، النوم، الدراسة)</p>
+    </div>
+    <div
+        class="flex items-center justify-center w-16 h-16 rounded-full {{ 'bg-green-500' if compatibility|int > 70 else 'bg-yellow-500' }} text-white font-bold text-xl shadow-lg ring-4 ring-white">
+        {{ compatibility }}
+    </div>
+</div>
+{% endif %}

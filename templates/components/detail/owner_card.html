@@ -1,0 +1,25 @@
+<div class="mt-8 border-t pt-6">
+    <div class="flex items-center gap-3">
+        <a href="{{ url_for('auth.view_profile', user_id=listing.owner.id) }}">
+            <img src="https://ui-avatars.com/api/?name={{ listing.owner.username }}&background=EBF5FF&color=2563EB"
+                class="w-12 h-12 rounded-full border border-gray-100 hover:ring-2 hover:ring-primary-400 transition">
+        </a>
+        <div>
+            <a href="{{ url_for('auth.view_profile', user_id=listing.owner.id) }}" class="hover:text-primary-600 transition">
+                <p class="text-sm font-bold text-gray-900">{{ listing.owner.username }}</p>
+            </a>
+            <div class="flex items-center gap-1 mt-0.5">
+                <span class="text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-bold">موثوقية: {{ listing.owner.reliability_score }}%</span>
+            </div>
+            {% if listing.owner.is_verified %}
+            <p class="text-[11px] text-green-600 flex items-center gap-1 font-bold mt-1">
+                <i class="fa-solid fa-circle-check"></i> هوية موثقة ومعتمدة
+            </p>
+            {% else %}
+            <p class="text-[11px] text-gray-400 flex items-center gap-1 mt-1">
+                <i class="fa-solid fa-circle-minus"></i> بانتظار التوثيق
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>

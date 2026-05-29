@@ -1,0 +1,35 @@
+{% if pagination.pages > 1 %}
+<div class="mt-8 flex justify-center">
+    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+        {% if pagination.has_prev %}
+        <a href="?{{ request.query_string.decode().split('&page=')[0] }}&page={{ pagination.prev_num }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            <span class="sr-only">السابق</span>
+            <i class="fa-solid fa-chevron-right"></i>
+        </a>
+        {% endif %}
+        
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == pagination.page %}
+                <span class="relative inline-flex items-center px-4 py-2 border border-primary-500 bg-primary-50 text-sm font-medium text-primary-600">
+                    {{ page_num }}
+                </span>
+                {% else %}
+                <a href="?{{ request.query_string.decode().split('&page=')[0] }}&page={{ page_num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ page_num }}
+                </a>
+                {% endif %}
+            {% else %}
+                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <a href="?{{ request.query_string.decode().split('&page=')[0] }}&page={{ pagination.next_num }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            <span class="sr-only">التالي</span>
+            <i class="fa-solid fa-chevron-left"></i>
+        </a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}

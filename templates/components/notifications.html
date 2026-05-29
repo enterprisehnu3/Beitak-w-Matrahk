@@ -1,0 +1,40 @@
+{% if current_user.notifications_list %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8 border-2 border-indigo-100">
+    <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-indigo-50 flex justify-between items-center">
+        <h3 class="text-lg leading-6 font-bold text-indigo-900">أحدث التنبيهات</h3>
+        <div class="flex items-center gap-4">
+            <span class="text-xs text-indigo-500">لديك تنبيهات جديدة</span>
+            <form action="{{ url_for('notifications.clear_all') }}" method="POST" class="inline">
+                <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-bold bg-white px-2 py-1 rounded shadow-sm border border-red-100 hover:bg-red-50 transition">
+                    مسح الكل <i class="fa-solid fa-trash ml-1"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    <ul class="divide-y divide-gray-200">
+        {% for n in current_user.notifications_list|reverse %}
+        {% if loop.index <= 5 %}
+        <li class="px-4 py-4 sm:px-6 hover:bg-gray-50 transition border-r-4 {{ 'border-primary-500 bg-primary-50' if not n.is_read else 'border-gray-200' }}">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-bold text-gray-900">{{ n.title }}</p>
+                    <p class="text-xs text-gray-600 mt-1">{{ n.message }}</p>
+                    <span class="text-[10px] text-gray-400 mt-2 block">{{ n.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    {% if n.link %}
+                    <a href="{{ n.link }}" class="text-xs text-primary-600 font-bold hover:underline">عرض المزيد</a>
+                    {% endif %}
+                    <form action="{{ url_for('notifications.delete', id=n.id) }}" method="POST" class="inline">
+                        <button type="submit" class="text-gray-400 hover:text-red-500 transition" title="حذف التنبيه">
+                            <i class="fa-solid fa-times text-lg"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </li>
+        {% endif %}
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}

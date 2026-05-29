@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    {% include "components/layout/head.html" %}
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    {% include "components/layout/navbar.html" %}
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% include "components/layout/footer.html" %}
+
+    {% include "partials/_chatbot.html" %}
+
+    <!-- Common Scripts -->
+    {% include "components/layout/scripts.html" %}
+    {% if session.get('user_id') %}
+    <div class="fixed bottom-6 left-6 z-50">
+        <button id="chatbot-toggle"
+            class="bg-gradient-to-r from-blue-500 to-cyan-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110">
+            <i class="fa-solid fa-robot text-2xl"></i>
+        </button>
+    </div>
+    {% endif %}
+    {% block extra_content %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

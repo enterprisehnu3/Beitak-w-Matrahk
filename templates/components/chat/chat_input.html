@@ -1,0 +1,47 @@
+<div class="p-4 bg-white border-t border-gray-100 py-4 px-6 z-10">
+    <form action="{{ url_for('chat.talk', user_id=other_user.id) }}" method="POST"
+        class="flex items-end gap-3 rounded-2xl relative" id="chatForm" enctype="multipart/form-data">
+        <div
+            class="flex-1 bg-gray-50 border border-gray-200 rounded-2xl flex items-center overflow-visible transition-colors focus-within:border-primary-500 focus-within:bg-white shadow-inner relative">
+
+            <div class="relative h-full flex items-center">
+                <button type="button" onclick="toggleMenu('emojiMenu')"
+                    class="px-4 py-3 text-gray-400 hover:text-primary-600 transition focus:outline-none">
+                    <i class="fa-regular fa-face-smile text-lg"></i>
+                </button>
+                <!-- Emoji Picker -->
+                <div id="emojiMenu"
+                    class="absolute bottom-full right-0 mb-2 w-64 bg-white border border-gray-100 rounded-lg shadow-xl p-2 grid grid-cols-6 gap-2 hidden z-50">
+                    {% for emoji in
+                    ['😀','😂','😍','🙏','👍','🔥','❤️','😊','😭','👋','😎','🤔','🎉','✨','💯','🙌','👏','👌']
+                    %}
+                    <button type="button"
+                        class="text-xl hover:bg-gray-100 rounded p-1 transition focus:outline-none cursor-pointer"
+                        onclick="document.getElementById('msg-input').value += '{{ emoji }}'">{{ emoji
+                        }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <textarea name="content" id="msg-input" rows="1" placeholder="اكتب رسالتك هنا..."
+                class="w-full bg-transparent border-none focus:ring-0 resize-none py-3 text-sm text-gray-800"
+                oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"></textarea>
+
+            <!-- File Upload -->
+            <input type="file" id="chat-file" name="file" class="hidden"
+                onchange="document.getElementById('file-preview-name').textContent = 'مرفق: ' + this.files[0].name; document.getElementById('file-preview-name').classList.remove('hidden')">
+            <label for="chat-file"
+                class="px-4 py-3 text-gray-400 hover:text-primary-600 transition cursor-pointer h-full flex items-center m-0">
+                <i class="fa-solid fa-paperclip text-lg"></i>
+            </label>
+        </div>
+
+        <button type="submit"
+            class="w-12 h-12 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition shadow-lg shadow-primary-500/30 flex-shrink-0">
+            <i class="fa-solid fa-paper-plane -mr-1"></i>
+        </button>
+    </form>
+    <div id="file-preview-name"
+        class="hidden text-xs text-primary-600 mt-2 font-medium bg-primary-50 px-2 py-1 rounded inline-block">
+    </div>
+</div>

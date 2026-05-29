@@ -1,0 +1,30 @@
+<div class="mb-8">
+    <h3 class="text-lg font-bold text-gray-900 border-b pb-2 mb-4">المرافق والمميزات</h3>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {% set amens = listing.amenities.split(',') if listing.amenities else [] %}
+        <div
+            class="flex items-center gap-2 p-2 rounded {{ 'text-primary-700 bg-primary-50' if 'wifi' in amens else 'text-gray-400 opacity-50' }}">
+            <i class="fa-solid fa-wifi"></i> <span>واي فاي وايرلس</span>
+        </div>
+        <div
+            class="flex items-center gap-2 p-2 rounded {{ 'text-primary-700 bg-primary-50' if 'ac' in amens else 'text-gray-400 opacity-50' }}">
+            <i class="fa-solid fa-snowflake"></i> <span>تكييف هواء</span>
+        </div>
+        <div
+            class="flex items-center gap-2 p-2 rounded {{ 'text-primary-700 bg-primary-50' if 'kitchen' in amens else 'text-gray-400 opacity-50' }}">
+            <i class="fa-solid fa-utensils"></i> <span>مطبخ مجهز</span>
+        </div>
+        <div
+            class="flex items-center gap-2 p-2 rounded {{ 'text-primary-700 bg-primary-50' if 'elevator' in amens else 'text-gray-400 opacity-50' }}">
+            <i class="fa-solid fa-arrow-up-9-1"></i> <span>أسانسير / مصعد</span>
+        </div>
+        <div
+            class="flex items-center gap-2 p-2 rounded {{ 'text-primary-700 bg-primary-50' if 'hot_water' in amens else 'text-gray-400 opacity-50' }}">
+            <i class="fa-solid fa-faucet"></i> <span>مياه ساخنة</span>
+        </div>
+        <div
+            class="flex items-center gap-2 p-2 rounded {{ 'text-primary-700 bg-primary-50' if 'parking' in amens else 'text-gray-400 opacity-50' }}">
+            <i class="fa-solid fa-square-parking"></i> <span>جراج / ركن سيارة</span>
+        </div>
+    </div>
+</div>

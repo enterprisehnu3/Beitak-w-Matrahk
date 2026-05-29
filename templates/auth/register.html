@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                إنشاء حساب جديد
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                انضم لمجتمع بيتك و مطرحك
+            </p>
+        </div>
+
+        <form class="mt-8 space-y-6" action="{{ url_for('auth.register') }}" method="POST" enctype="multipart/form-data">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Row 1 -->
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">اسم المستخدم</label>
+                    <input type="text" name="username" id="username" required
+                        pattern="^[a-zA-Z\u0600-\u06FF0-9\s]+$" title="يرجى إدخال حروف أو أرقام"
+                        oninput="this.value = this.value.replace(/[^a-zA-Z\u0600-\u06FF0-9\s]/g, '')"
+                        class="mt-1 h-11 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 border">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
+                    <input type="email" name="email" id="email" required
+                        class="mt-1 h-11 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 border">
+                </div>
+
+                <!-- Row 2 -->
+                <div>
+                    <label for="national_id_number" class="block text-sm font-medium text-gray-700">رقم البطاقة (14 رقم)</label>
+                    <input type="text" name="national_id_number" id="national_id_number" required 
+                        maxlength="14" minlength="14" pattern="\d{14}" title="يرجى إدخال 14 رقم"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 14)"
+                        class="mt-1 h-11 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 border">
+                </div>
+                <div>
+                    <label for="gender" class="block text-sm font-medium text-gray-700">الجنس</label>
+                    <select id="gender" name="gender"
+                        class="mt-1 h-11 block w-full px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="male">ذكر</option>
+                        <option value="female">أنثى</option>
+                    </select>
+                </div>
+
+                <!-- Row 3: Passwords with shared horizontal checklist -->
+                <div class="md:col-span-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700">كلمة المرور</label>
+                            <input type="password" name="password" id="password" required minlength="8"
+                                class="mt-1 h-11 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 border transition-colors">
+                        </div>
+                        <div>
+                            <label for="confirm_password" class="block text-sm font-medium text-gray-700">تأكيد كلمة المرور</label>
+                            <input type="password" name="confirm_password" id="confirm_password" required minlength="8"
+                                class="mt-1 h-11 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 border">
+                            <p id="password-error" class="text-xs text-red-500 mt-1 hidden">كلمات المرور غير متطابقة!</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Grid Password Validation Checklist -->
+                    <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px] font-medium text-gray-500 bg-gray-50 p-4 rounded-xl border border-gray-100" id="password-reqs">
+                        <p class="flex items-center gap-2 transition-colors duration-200" id="req-length"><i class="fa-regular fa-circle text-gray-300 text-xs"></i> 8 أحرف على الأقل</p>
+                        <p class="flex items-center gap-2 transition-colors duration-200" id="req-letter"><i class="fa-regular fa-circle text-gray-300 text-xs"></i> حرف إنجليزي</p>
+                        <p class="flex items-center gap-2 transition-colors duration-200" id="req-number"><i class="fa-regular fa-circle text-gray-300 text-xs"></i> رقم (0-9)</p>
+                        <p class="flex items-center gap-2 transition-colors duration-200" id="req-special"><i class="fa-regular fa-circle text-gray-300 text-xs"></i> رمز خاص (!@#$)</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ID Upload -->
+            <div class="border-t border-gray-200 pt-6">
+                <label class="block text-sm font-medium text-gray-700">صورة بطاقة الرقم القومي (للتحقق) <span
+                        class="text-red-500">*</span></label>
+                <div id="id-upload-area"
+                    class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50 transition cursor-pointer">
+                    <div class="space-y-1 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
+                            viewBox="0 0 48 48" aria-hidden="true">
+                            <path
+                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="flex text-sm text-gray-600">
+                            <label for="file-upload"
+                                class="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
+                                <span>رفع ملف</span>
+                                <input id="file-upload" name="id_card" type="file" class="sr-only" required
+                                    accept="image/png,image/jpeg,image/jpg">
+                            </label>
+                            <p class="pl-1">أو اسحب وأفلت</p>
+                        </div>
+                        <p class="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                        <p id="file-name" class="text-xs text-green-600 font-medium mt-1 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-lg shadow-primary-500/30 transition transform hover:-translate-y-0.5">
+                    متابعة للخطوة التالية <i class="fa-solid fa-arrow-left mr-2 mt-1"></i>
+                </button>
+            </div>
+        </form>
+
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    </div>
+</div>
+{% endblock %}

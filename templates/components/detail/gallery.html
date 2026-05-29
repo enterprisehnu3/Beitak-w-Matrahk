@@ -1,0 +1,19 @@
+<div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+    <div class="relative h-72 md:h-[450px] bg-gray-100 group">
+        <img id="main-gallery-img"
+            src="{{ listing.images[0].image_path if listing.images else '/static/img/placeholder.png' }}"
+            class="w-full h-full object-cover transition-all duration-500"
+            onerror="this.onerror=null; this.src='/static/img/placeholder.png';">
+
+        {% if listing.images|length > 1 %}
+        <div
+            class="absolute inset-x-0 bottom-4 flex justify-center gap-2 px-4 overflow-x-auto py-2 no-scrollbar">
+            {% for img in listing.images %}
+            <img src="{{ img.image_path }}"
+                onclick="document.getElementById('main-gallery-img').src = this.src"
+                class="w-16 h-12 rounded-lg border-2 border-white shadow-md cursor-pointer hover:scale-110 transition object-cover flex-shrink-0 {{ 'ring-2 ring-primary-500' if loop.first else '' }}">
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>

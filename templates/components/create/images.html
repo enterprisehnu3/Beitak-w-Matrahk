@@ -1,0 +1,21 @@
+<div>
+    <h3 class="text-lg leading-6 font-medium text-gray-900">الصور</h3>
+    <p class="mt-1 text-sm text-gray-500">ارفع صور واضحة للغرفة والشقة.</p>
+</div>
+<div class="mt-6">
+    <div
+        class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50 transition cursor-pointer"
+        onclick="document.getElementById('listing-images').click()">
+        <div class="space-y-1 text-center">
+            <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-400"></i>
+            <div class="flex text-sm text-gray-600 justify-center mt-2">
+                <span class="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
+                    <span>اختر صور</span>
+                    <input id="listing-images" name="images" type="file" multiple class="sr-only">
+                </span>
+            </div>
+            <p class="text-xs text-gray-500">PNG, JPG up to 10MB</p>
+        </div>
+    </div>
+    <div id="image-preview" class="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-4"></div>
+</div>

@@ -1,0 +1,28 @@
+<!-- Flash Messages Data (Hidden) -->
+<div id="flash-data" class="hidden" aria-hidden="true">
+    {% set flashed = get_flashed_messages(with_categories=true) %}
+    {% if flashed %}
+    {% for category, message in flashed %}
+    <div class="flash-item" data-category="{{ category }}" data-message="{{ message }}"></div>
+    {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Vendor Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- App Core Scripts -->
+<script src="{{ url_for('static', filename='js/alerts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<style>
+    .colored-toast.swal2-icon-success { background-color: #ecfdf5 !important; border: 1px solid #a7f3d0 !important; }
+    .colored-toast.swal2-icon-error { background-color: #fef2f2 !important; border: 1px solid #fecaca !important; }
+    .colored-toast.swal2-icon-warning { background-color: #fffbeb !important; border: 1px solid #fde68a !important; }
+    .colored-toast.swal2-icon-info { background-color: #eff6ff !important; border: 1px solid #bfdbfe !important; }
+    .colored-toast .swal2-title { font-family: 'Cairo', sans-serif !important; font-size: 14px !important; font-weight: 600 !important; }
+    .colored-toast .swal2-icon { width: 28px !important; height: 28px !important; margin: 0 8px !important; }
+    .swal-rtl { direction: rtl !important; font-family: 'Cairo', sans-serif !important; }
+    .swal-rtl .swal2-title, .swal-rtl .swal2-html-container { font-family: 'Cairo', sans-serif !important; }
+</style>

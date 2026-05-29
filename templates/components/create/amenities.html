@@ -1,0 +1,31 @@
+<div class="sm:col-span-6">
+    <label class="block text-sm font-medium text-gray-700 mb-2">المميزات المتاحة</label>
+    <div
+        class="grid grid-cols-2 md:grid-cols-3 gap-3 bg-gray-50 p-4 rounded-lg border border-gray-100">
+        {% set amens = listing.amenities.split(',') if listing and listing.amenities else [] %}
+        <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" name="amenities" value="wifi" {% if 'wifi' in amens %}checked{% endif %}
+                class="rounded border-gray-300 text-primary-600 ml-2"> واي فاي
+        </label>
+        <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" name="amenities" value="ac" {% if 'ac' in amens %}checked{% endif %}
+                class="rounded border-gray-300 text-primary-600 ml-2"> تكييف
+        </label>
+        <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" name="amenities" value="kitchen" {% if 'kitchen' in amens %}checked{% endif %}
+                class="rounded border-gray-300 text-primary-600 ml-2"> مطبخ مجهز
+        </label>
+        <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" name="amenities" value="elevator" {% if 'elevator' in amens %}checked{% endif %}
+                class="rounded border-gray-300 text-primary-600 ml-2"> أسانسير
+        </label>
+        <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" name="amenities" value="hot_water" {% if 'hot_water' in amens %}checked{% endif %}
+                class="rounded border-gray-300 text-primary-600 ml-2"> سخان مياه
+        </label>
+        <label class="flex items-center text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" name="amenities" value="parking" {% if 'parking' in amens %}checked{% endif %}
+                class="rounded border-gray-300 text-primary-600 ml-2"> جراج
+        </label>
+    </div>
+</div>

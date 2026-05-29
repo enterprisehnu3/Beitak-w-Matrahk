@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+{% include "components/home/hero.html" %}
+
+<!-- Features Section -->
+{% include "components/home/features.html" %}
+
+<!-- Listings Section -->
+<div class="max-w-7xl mx-auto text-center py-12 px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-8">
+        <span class="block">أحدث الغرف المضافة</span>
+    </h2>
+
+    <div class="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-3 xl:gap-x-8">
+        {% if listings %}
+            {% include "components/listing_card.html" %}
+        {% else %}
+        <div class="col-span-3 py-16 text-center">
+            <div class="inline-block p-4 rounded-full bg-gray-100 mb-4">
+                <i class="fa-solid fa-magnifying-glass text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">لا توجد إعلانات حالياً</h3>
+            <p class="mt-1 text-sm text-gray-500">كن أول من يضيف إعلان سكن مشترك!</p>
+            <div class="mt-6">
+                <a href="{{ url_for('listings.create') }}"
+                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none">
+                    <i class="fa-solid fa-plus ml-2 -mr-1"></i>
+                    أضف إعلانك
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

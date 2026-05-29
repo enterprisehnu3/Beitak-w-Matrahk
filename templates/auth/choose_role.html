@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 px-4"
+    dir="rtl">
+    <div class="max-w-2xl w-full">
+
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 mb-4">
+                <i class="fa-solid fa-user-circle text-3xl text-primary-600"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">
+                أهلاً بك، {{ current_user.username }}! 👋
+            </h1>
+            <p class="text-gray-500 text-lg">
+                اختار نوع حسابك عشان نوجّهك للمكان الصح
+            </p>
+        </div>
+
+        <!-- Cards -->
+        <form method="POST" action="{{ url_for('auth.choose_role') }}">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Homeowner Card -->
+                <label for="role-homeowner" class="cursor-pointer group">
+                    <input type="radio" id="role-homeowner" name="role_choice" value="homeowner" class="hidden peer"
+                        required>
+                    <div class="relative bg-white rounded-2xl border-2 border-gray-200 p-8 text-center shadow-sm
+                                transition-all duration-300
+                                peer-checked:border-primary-500 peer-checked:shadow-xl peer-checked:shadow-primary-500/20
+                                hover:border-primary-300 hover:shadow-lg hover:-translate-y-1">
+
+                        <!-- Check mark -->
+                        <div class="absolute top-4 left-4 w-6 h-6 rounded-full bg-primary-500 text-white
+                                    flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity
+                                    scale-75 peer-checked:scale-100" id="check-homeowner">
+                            <i class="fa-solid fa-check text-xs"></i>
+                        </div>
+
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-blue-50
+                                    group-hover:bg-blue-100 mb-6 text-4xl transition-colors duration-300">
+                            🏠
+                        </div>
+
+                        <h2 class="text-xl font-bold text-gray-900 mb-3">مالك شقة</h2>
+                        <p class="text-gray-500 text-sm leading-relaxed">
+                            عندك غرفة للإيجار؟ أضف إعلانك وابدأ تلقى مستأجرين موثوقين مباشرة.
+                        </p>
+
+                        <div class="mt-6 flex flex-wrap gap-2 justify-center">
+                            <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full">إضافة إعلانات</span>
+                            <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full">إدارة الحجوزات</span>
+                            <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full">مستأجرين موثوقين</span>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Tenant Card -->
+                <label for="role-tenant" class="cursor-pointer group">
+                    <input type="radio" id="role-tenant" name="role_choice" value="tenant" class="hidden peer" required>
+                    <div class="relative bg-white rounded-2xl border-2 border-gray-200 p-8 text-center shadow-sm
+                                transition-all duration-300
+                                peer-checked:border-green-500 peer-checked:shadow-xl peer-checked:shadow-green-500/20
+                                hover:border-green-300 hover:shadow-lg hover:-translate-y-1">
+
+                        <!-- Check mark -->
+                        <div class="absolute top-4 left-4 w-6 h-6 rounded-full bg-green-500 text-white
+                                    flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity
+                                    scale-75 peer-checked:scale-100" id="check-tenant">
+                            <i class="fa-solid fa-check text-xs"></i>
+                        </div>
+
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-green-50
+                                    group-hover:bg-green-100 mb-6 text-4xl transition-colors duration-300">
+                            🔑
+                        </div>
+
+                        <h2 class="text-xl font-bold text-gray-900 mb-3">مستأجر</h2>
+                        <p class="text-gray-500 text-sm leading-relaxed">
+                            بتدور على سكن؟ ابحث في مئات الغرف المضمونة بأسعار مناسبة من غير سمسار.
+                        </p>
+
+                        <div class="mt-6 flex flex-wrap gap-2 justify-center">
+                            <span class="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full">بحث الغرف</span>
+                            <span class="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full">حجز آمن</span>
+                            <span class="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full">بدون سمسار</span>
+                        </div>
+                    </div>
+                </label>
+
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-8 text-center">
+                <button type="submit" class="inline-flex items-center gap-3 px-10 py-4 bg-primary-600 text-white text-lg font-bold
+                           rounded-xl shadow-lg shadow-primary-500/30 hover:bg-primary-700
+                           transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    تأكيد الاختيار والمتابعة
+                </button>
+            </div>
+        </form>
+
+        <p class="text-center text-sm text-gray-400 mt-6">
+            يمكنك تغيير نوع حسابك لاحقاً من الإعدادات
+        </p>
+
+    </div>
+</div>
+
+<style>
+    /* Custom JS-free peer check visibility using CSS sibling selector */
+    #role-homeowner:checked~div #check-homeowner {
+        opacity: 1;
+    }
+
+    #role-tenant:checked~div #check-tenant {
+        opacity: 1;
+    }
+</style>
+
+<script>
+    // Highlight selected card with visual feedback
+    document.querySelectorAll('input[name="role_choice"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            // Reset all
+            document.querySelectorAll('label > div.relative').forEach(function (card) {
+                card.querySelector('.absolute').style.opacity = '0';
+            });
+            // Highlight selected
+            const selectedCard = this.closest('label').querySelector('.relative .absolute');
+            if (selectedCard) selectedCard.style.opacity = '1';
+        });
+    });
+</script>
+
+{% endblock %}

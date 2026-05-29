@@ -1,0 +1,138 @@
+<!-- Chatbot Widget -->
+<div id="chatbot-container" class="fixed bottom-6 left-6 z-[100] font-cairo">
+    <!-- Chatbot Button -->
+    <button id="chatbot-toggle" class="bg-primary-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:bg-primary-700 transition-all hover:scale-110 active:scale-95 group relative">
+        <i class="fa-solid fa-robot text-2xl group-hover:hidden"></i>
+        <i class="fa-solid fa-comment-dots text-2xl hidden group-hover:block"></i>
+        <span class="absolute -top-1 -right-1 flex h-4 w-4">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-4 w-4 bg-green-500"></span>
+        </span>
+    </button>
+
+    <!-- Chat Window (Hidden by default) -->
+    <div id="chat-window" class="hidden absolute bottom-20 left-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden transition-all duration-300 transform scale-95 opacity-0 origin-bottom-left">
+        <!-- Header -->
+        <div class="bg-primary-600 p-4 text-white flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 p-2 rounded-lg">
+                    <i class="fa-solid fa-robot text-xl"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm">مساعد بيتك و مطرحك الذكي</h4>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                        <span class="text-[10px] text-primary-100">متاح الآن لمساعدتك</span>
+                    </div>
+                </div>
+            </div>
+            <button id="close-chat" class="text-white hover:text-primary-100 transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chat-messages" class="flex-grow h-96 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+            <!-- Bot Intro -->
+            <div class="flex items-start gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center text-primary-600 flex-shrink-0">
+                    <i class="fa-solid fa-robot text-xs"></i>
+                </div>
+                <div class="bg-white p-3 rounded-2xl rounded-tr-none shadow-sm border border-gray-100 max-w-[85%]">
+                    <p class="text-xs text-gray-700 leading-relaxed">أهلاً بك في بيتك و مطرحك! أنا مساعدك الذكي، كيف يمكنني مساعدتك اليوم؟</p>
+                </div>
+            </div>
+            <!-- Suggested Questions -->
+            <div class="flex flex-wrap gap-2 mt-2 mr-10">
+                <button onclick="sendBotMessage('search')" class="text-[10px] bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:border-primary-500 hover:text-primary-600 transition shadow-sm">كيف أبحث عن سكن؟</button>
+                <button onclick="sendBotMessage('book')" class="text-[10px] bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:border-primary-500 hover:text-primary-600 transition shadow-sm">طريقة الحجز؟</button>
+                <button onclick="sendBotMessage('verify')" class="text-[10px] bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:border-primary-500 hover:text-primary-600 transition shadow-sm">كيف أوثق حسابي؟</button>
+            </div>
+        </div>
+
+        <!-- Footer / Input -->
+        <div class="p-3 border-t bg-white">
+            <form id="chat-input-form" class="flex gap-2">
+                <input type="text" id="chat-user-input" placeholder="اكتب سؤالك هنا..." class="flex-grow bg-gray-50 border-gray-200 rounded-xl text-xs focus:ring-primary-500 focus:border-primary-500 py-2 px-3">
+                <button type="submit" class="bg-primary-600 text-white w-9 h-9 rounded-xl flex items-center justify-center hover:bg-primary-700 transition">
+                    <i class="fa-solid fa-paper-plane-rtl"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatToggle = document.getElementById('chatbot-toggle');
+    const chatWindow = document.getElementById('chat-window');
+    const closeChat = document.getElementById('close-chat');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-input-form');
+    const userInput = document.getElementById('chat-user-input');
+
+    chatToggle.onclick = () => {
+        const isHidden = chatWindow.classList.contains('hidden');
+        if(isHidden) {
+            chatWindow.classList.remove('hidden');
+            setTimeout(() => {
+                chatWindow.classList.replace('scale-95', 'scale-100');
+                chatWindow.classList.replace('opacity-0', 'opacity-100');
+            }, 10);
+        } else {
+            closeChatUI();
+        }
+    };
+
+    closeChat.onclick = closeChatUI;
+
+    function closeChatUI() {
+        chatWindow.classList.replace('scale-100', 'scale-95');
+        chatWindow.classList.replace('opacity-100', 'opacity-0');
+        setTimeout(() => chatWindow.classList.add('hidden'), 300);
+    }
+
+    const botReplies = {
+        'search': 'يمكنك البحث عن سكن من خلال صفحة "تصفح الغرف"، واستخدام الفلاتر المتاحة (المدينة، السعر، النوع) أو محرك البحث الجديد للوصول لما يناسبك.',
+        'book': 'لحجز سكن، ادخل على تفاصيل الغرفة واضغط على "طلب حجز الآن"، سيتم توجيهك لصفحة الدفع لتأكيد الطلب وإخطار المالك.',
+        'verify': 'لتوثيق حسابك، يرجى رفع صورة بطاقة الرقم القومي عند التسجيل، وسيقوم المشرف بمراجعتها وتدقيق البيانات خلال 24 ساعة.',
+        'default': 'أعتذر، لم أفهم سؤالك جيداً. يمكنك الاختيار من الأسئلة المقترحة أو التواصل مع الدعم الفني عبر info@beitak.com'
+    };
+
+    function addMessage(text, isBot = true) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = isBot ? 'flex items-start gap-2.5' : 'flex items-start justify-end gap-2.5';
+        
+        const content = `
+            ${isBot ? '<div class="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center text-primary-600 flex-shrink-0"><i class="fa-solid fa-robot text-xs"></i></div>' : ''}
+            <div class="${isBot ? 'bg-white p-3 rounded-2xl rounded-tr-none' : 'bg-primary-600 text-white p-3 rounded-2xl rounded-tl-none'} shadow-sm border border-gray-100 max-w-[85%]">
+                <p class="text-xs leading-relaxed">${text}</p>
+            </div>
+            ${!isBot ? '<div class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white flex-shrink-0"><i class="fa-solid fa-user text-xs"></i></div>' : ''}
+        `;
+        
+        msgDiv.innerHTML = content;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendBotMessage(key) {
+        addMessage(botReplies[key] || botReplies['default']);
+    }
+
+    chatForm.onsubmit = (e) => {
+        e.preventDefault();
+        const text = userInput.value.trim();
+        if(!text) return;
+        
+        addMessage(text, false);
+        userInput.value = '';
+        
+        // Basic matching
+        setTimeout(() => {
+            if(text.includes('بحث') || text.includes('تصفح')) sendBotMessage('search');
+            else if(text.includes('حجز') || text.includes('دفع')) sendBotMessage('book');
+            else if(text.includes('توثيق') || text.includes('بطاق')) sendBotMessage('verify');
+            else sendBotMessage('default');
+        }, 600);
+    };
+</script>

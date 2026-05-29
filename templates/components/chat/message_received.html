@@ -1,0 +1,22 @@
+<!-- Received Message (Other) -->
+<div class="flex justify-end gap-2">
+    <div
+        class="max-w-[80%] md:max-w-[60%] bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-5 py-3 shadow-sm relative">
+        {% if '|ATTACHMENT|' in message.content %}
+        {% set parts = message.content.split('|ATTACHMENT|') %}
+        {% if parts[0] %}<p class="text-sm leading-relaxed mb-2">{{ parts[0] }}</p>{% endif %}
+        {% set file_info = parts[1].split('|') %}
+        <a href="{{ file_info[0] }}" target="_blank"
+            class="inline-flex items-center gap-2 bg-black/5 hover:bg-black/10 transition border border-gray-200 rounded p-2 mt-2 text-sm text-gray-700 w-max max-w-full overflow-hidden text-left"
+            dir="ltr">
+            <i class="fa-solid fa-file-arrow-down flex-shrink-0"></i>
+            <span class="truncate">{{ file_info[1] if file_info|length > 1 else 'ملف مرفق' }}</span>
+        </a>
+        {% else %}
+        <p class="text-sm leading-relaxed">{{ message.content }}</p>
+        {% endif %}
+        <div class="text-[10px] text-gray-400 mt-2 text-left">
+            {{ message.created_at.strftime('%I:%M %p') }}
+        </div>
+    </div>
+</div>

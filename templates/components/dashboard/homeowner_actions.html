@@ -1,0 +1,10 @@
+{% if current_user.is_verified %}
+<a href="{{ url_for('listings.create') }}"
+    class="bg-primary-600 text-white px-4 py-2 rounded-md shadow hover:bg-primary-700 transition">
+    <i class="fa-solid fa-plus ml-2"></i> إضافة إعلان جديد
+</a>
+{% else %}
+<div class="bg-yellow-50 text-yellow-700 px-4 py-2 rounded-md border border-yellow-200 text-sm font-bold animate-pulse">
+    <i class="fa-solid fa-lock ml-2"></i> بانتظار توثيق الحساب لتتمكن من إضافة إعلانات
+</div>
+{% endif %}

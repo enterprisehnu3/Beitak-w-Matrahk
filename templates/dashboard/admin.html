@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
+        <div>
+            <h1 class="text-3xl font-black text-gray-800">لوحة التحكم الإدارية</h1>
+            <p class="text-gray-500 mt-1">مرحباً بك مجدداً، {{ current_user.username }}</p>
+        </div>
+        <div class="flex gap-3 items-center">
+            <a href="{{ url_for('admin.manage_reports') }}" class="bg-red-50 text-red-600 px-6 py-2 rounded-xl font-bold border border-red-200 hover:bg-red-100 transition flex items-center gap-2 relative">
+                <i class="fa-solid fa-triangle-exclamation"></i> إدارة البلاغات
+                {% if pending_reports_count > 0 %}
+                <span class="absolute -top-2 -left-2 bg-red-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black animate-pulse shadow-sm">
+                    {{ pending_reports_count }}
+                </span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('admin.export_report') }}" class="bg-primary-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-primary-200 hover:bg-primary-700 transition flex items-center">
+                <i class="fa-solid fa-download ml-2"></i> تحميل التقارير
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-bold text-gray-400">إجمالي الإيرادات</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-1">{{ stats.total_revenue }} ج.م</h3>
+                </div>
+                <div class="bg-green-50 p-3 rounded-lg text-green-600">
+                    <i class="fa-solid fa-wallet text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-bold text-gray-400">إجمالي الحجوزات</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-1">{{ stats.total_bookings }}</h3>
+                </div>
+                <div class="bg-blue-50 p-3 rounded-lg text-blue-600">
+                    <i class="fa-solid fa-calendar-check text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-bold text-gray-400">المستخدمين النشطين</p>
+                    <h3 class="text-2xl font-black text-gray-800 mt-1">{{ stats.total_users }}</h3>
+                </div>
+                <div class="bg-indigo-50 p-3 rounded-lg text-indigo-600">
+                    <i class="fa-solid fa-users text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-bold text-gray-400">طلبات توثيق معلقة</p>
+                    <h3 class="text-2xl font-black text-primary-600 mt-1">{{ stats.pending_verifications }}</h3>
+                </div>
+                <div class="bg-primary-50 p-3 rounded-lg text-primary-600">
+                    <i class="fa-solid fa-id-card text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">نشاط الحجوزات</h3>
+            <canvas id="bookingsChart" height="200"></canvas>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">نمو المستخدمين</h3>
+            <canvas id="usersChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Listings Pending Approval -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">إعلانات بانتظار الموافقة</h3>
+        </div>
+        {% if pending_listings %}
+        <ul class="divide-y divide-gray-200">
+            {% for listing in pending_listings %}
+            <li class="px-4 py-4 sm:px-6 flex items-center justify-between">
+                <div class="flex items-center">
+                    {% set fallback_img = url_for('static', filename='img/room.jpg') %}
+                    <img class="h-12 w-12 rounded-lg object-cover ml-4"
+                        src="{{ listing.images[0].image_path if listing.images else fallback_img }}"
+                        onerror="this.src='{{ fallback_img }}'">
+                    <div>
+                        <p class="text-sm font-medium text-primary-600 truncate">{{ listing.title }}</p>
+                        <p class="text-sm text-gray-500">مالك: <a href="{{ url_for('auth.view_profile', user_id=listing.owner_id) }}" class="hover:underline">{{ listing.owner.username }}</a> | {{
+                            listing.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{{ url_for('listings.detail', id=listing.id) }}"
+                        class="text-gray-600 hover:text-gray-900 text-sm font-medium px-3 py-1 border rounded hover:bg-gray-50">عرض
+                        التفاصيل</a>
+                    <form action="{{ url_for('admin.approve_listing', id=listing.id) }}" method="POST">
+                        <button type="submit"
+                            class="text-green-600 hover:text-green-900 text-sm font-medium px-3 py-1 border border-green-200 rounded hover:bg-green-50">موافق</button>
+                    </form>
+                    <form action="{{ url_for('listings.delete', id=listing.id) }}" method="POST"
+                        onsubmit="return swalConfirm(this, 'حذف المستخدم؟', 'سيتم مسح كافة البيانات بشكل نهائي.', 'error');">
+                        <button type="submit"
+                            class="text-red-600 hover:text-red-900 text-sm font-medium px-3 py-1 border border-red-200 rounded hover:bg-red-50">رفض
+                            وحذف</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="p-8 text-center text-gray-500">
+            لا توجد إعلانات معلقة حالياً.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">أحدث الحجوزات</h3>
+        </div>
+        {% if recent_bookings %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">رقم الحجز</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المستأجر</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المالك</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الغرفة</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for booking in recent_bookings %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ booking.id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <a href="{{ url_for('auth.view_profile', user_id=booking.tenant_id) }}" class="hover:underline text-primary-600">{{ booking.tenant.username }}</a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <a href="{{ url_for('auth.view_profile', user_id=booking.listing.owner_id) }}" class="hover:underline">{{ booking.listing.owner.username }}</a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs">{{
+                            booking.listing.title }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span
+                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {{ 'bg-green-100 text-green-800' if booking.status == 'confirmed' else 'bg-yellow-100 text-yellow-800' if booking.status == 'pending' else 'bg-red-100 text-red-800' }}">
+                                {{ booking.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-8 text-center text-gray-500">لا توجد حجوزات حتى الآن.</div>
+        {% endif %}
+        <!-- Users Pending Verification -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8 border-2 border-primary-100">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-primary-50">
+                <h3 class="text-lg leading-6 font-bold text-primary-900">طلبات توثيق الهوية</h3>
+            </div>
+            {% if pending_users %}
+            <ul class="divide-y divide-gray-200">
+                {% for user in pending_users %}
+                <li class="px-4 py-4 sm:px-6 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img class="h-10 w-10 rounded-full ml-3"
+                            src="https://ui-avatars.com/api/?name={{ user.username }}&background=random">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">
+                                <a href="{{ url_for('auth.view_profile', user_id=user.id) }}" class="hover:text-primary-600 transition">{{ user.username }}</a>
+                            </p>
+                            <p class="text-xs text-gray-500">{{ user.email }} | الدور: {{ 'مستأجر' if user.role == 'student' else 'مالك' if user.role == 'homeowner' else user.role }}</p>
+                            <p class="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded inline-block mt-1">NID: {{ user.national_id_number }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex flex-col gap-2 items-end">
+                            {% if user.national_id_image %}
+                                {% if user.national_id_image.startswith('/') %}
+                                    {% set id_img_url = user.national_id_image %}
+                                {% elif user.national_id_image.startswith('uploads') %}
+                                    {% set id_img_url = url_for('static', filename=user.national_id_image) %}
+                                {% else %}
+                                    {% set id_img_url = url_for('static', filename='uploads/ids/' ~ user.national_id_image) %}
+                                {% endif %}
+                                <button onclick="viewIDImage('{{ id_img_url }}')" 
+                                    class="text-xs text-blue-700 font-bold bg-blue-50 px-3 py-1.5 rounded-md border border-blue-200 hover:bg-blue-100 transition shadow-sm cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-id-card"></i> عرض صورة البطاقة
+                                </button>
+                            {% endif %}
+                            
+                            {% if user.id_selfie_image %}
+                                {% if user.id_selfie_image.startswith('/') %}
+                                    {% set selfie_img_url = user.id_selfie_image %}
+                                {% else %}
+                                    {% set selfie_img_url = url_for('static', filename=user.id_selfie_image) %}
+                                {% endif %}
+                                <button onclick="viewIDImage('{{ selfie_img_url }}')" 
+                                    class="text-xs text-purple-700 font-bold bg-purple-50 px-3 py-1.5 rounded-md border border-purple-200 hover:bg-purple-100 transition shadow-sm cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-camera-retro"></i> عرض صورة السيلفي
+                                </button>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <form action="{{ url_for('admin.verify_user', id=user.id) }}" method="POST">
+                                <button type="submit"
+                                    class="bg-green-600 text-white px-4 py-1 rounded text-xs font-bold hover:bg-green-700">توثيق</button>
+                            </form>
+                            <form action="{{ url_for('admin.reject_user', id=user.id) }}" method="POST" class="flex items-center gap-1">
+                                <input type="text" name="reason" placeholder="سبب الرفض..." class="text-[10px] border-gray-200 rounded px-1 py-1 w-32">
+                                <button type="submit" class="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold hover:bg-red-700">رفض</button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="p-8 text-center text-gray-400 text-sm">لا توجد طلبات توثيق معلقة.</div>
+            {% endif %}
+        </div>
+
+        <!-- Support Tickets -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8 border-2 border-red-100">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-red-50">
+                <h3 class="text-lg leading-6 font-bold text-red-900">بلاغات وشكاوى الدعم الفني</h3>
+            </div>
+            {% if pending_tickets %}
+            <ul class="divide-y divide-gray-200">
+                {% for ticket in pending_tickets %}
+                <li class="px-4 py-4 sm:px-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-bold text-gray-900">{{ ticket.subject }}</span>
+                        <span class="text-[10px] text-gray-400">{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <p class="text-xs text-gray-600 mb-2">{{ ticket.message }}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] text-primary-600 font-bold">بواسطة: <a href="{{ url_for('auth.view_profile', user_id=ticket.user_id) }}" class="hover:underline">{{ ticket.user.username }}</a></span>
+                        <div class="flex items-center gap-3">
+                            <a href="{{ url_for('chat.talk', user_id=ticket.user_id) }}" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded text-[10px] font-bold hover:bg-indigo-100 transition">
+                                <i class="fa-solid fa-message ml-1"></i>فتح محادثة للرد
+                            </a>
+                            <form action="{{ url_for('support.close_ticket', id=ticket.id) }}" method="POST">
+                                <button type="submit" class="bg-gray-800 text-white px-3 py-1 rounded text-[10px] hover:bg-black font-bold">إغلاق البلاغ</button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="p-8 text-center text-gray-400 text-sm">لا توجد بلاغات معلقة.</div>
+            {% endif %}
+        </div>
+
+        <!-- System Transactions -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">سجل المعاملات المالية (المحاكاة)</h3>
+            </div>
+            {% if recent_transactions %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase">المستخدم</th>
+                            <th class="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase">المبلغ</th>
+                            <th class="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase">النوع</th>
+                            <th class="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase">التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for tx in recent_transactions %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-3 whitespace-nowrap text-xs text-gray-900">
+                                <a href="{{ url_for('auth.view_profile', user_id=tx.user_id) }}" class="hover:underline text-primary-600">{{ tx.user.username }}</a>
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap text-xs font-bold {{ 'text-red-600' if tx.amount < 0 else 'text-green-600' }}">
+                                {{ "%.2f"|format(tx.amount) }} ج.م
+                            </td>
+                            <td class="px-6 py-3 whitespace-nowrap text-xs text-gray-500">{{ tx.transaction_type }}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-[10px] text-gray-400">{{ tx.timestamp.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-8 text-center text-gray-400 text-sm">لا توجد معاملات مسجلة.</div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_content %}
+<!-- Image Viewer Modal -->
+<div id="id-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="relative bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-900">عرض صورة الهوية</h3>
+            <div class="flex gap-2">
+                <a id="modal-download" href="#" download class="bg-primary-600 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-primary-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-download"></i> تحميل الصورة
+                </a>
+                <button onclick="closeIDModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex-grow overflow-auto p-4 flex items-center justify-center bg-gray-100">
+            <img id="modal-img" src="" alt="ID Card" class="max-w-full h-auto shadow-2xl rounded-lg">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function viewIDImage(url) {
+        const modal = document.getElementById('id-modal');
+        const img = document.getElementById('modal-img');
+        const downloadBtn = document.getElementById('modal-download');
+        
+        img.src = url;
+        downloadBtn.href = url;
+        modal.classList.remove('hidden');
+        document.body.classList.add('modal-active');
+    }
+
+    function closeIDModal() {
+        const modal = document.getElementById('id-modal');
+        modal.classList.add('hidden');
+        document.body.classList.remove('modal-active');
+    }
+
+    // Chart.js implementation
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wrapped in quotes and JSON.parse to prevent IDE syntax warnings
+        const adminChartMonths = JSON.parse('{{ chart_data.months|tojson|safe }}');
+        const adminBookingsData = JSON.parse('{{ chart_data.bookings|tojson|safe }}');
+        const adminUsersData = JSON.parse('{{ chart_data.users|tojson|safe }}');
+        
+        const adminBookingsCtx = document.getElementById('bookingsChart').getContext('2d');
+        new Chart(adminBookingsCtx, {
+            type: 'line',
+            data: {
+                labels: adminChartMonths,
+                datasets: [{
+                    label: 'الحجوزات',
+                    data: adminBookingsData,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        const adminUsersCtx = document.getElementById('usersChart').getContext('2d');
+        new Chart(adminUsersCtx, {
+            type: 'bar',
+            data: {
+                labels: adminChartMonths,
+                datasets: [{
+                    label: 'المستخدمين الجدد',
+                    data: adminUsersData,
+                    backgroundColor: '#0ea5e9'
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+    });
+</script>
+{% endblock %}

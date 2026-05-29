@@ -1,0 +1,22 @@
+<div class="text-left flex flex-col items-end gap-2">
+    <div class="flex items-center gap-4">
+        {% if current_user.is_authenticated %}
+        <button onclick="toggleFavorite(this.dataset.listingId, this)"
+            data-listing-id="{{ listing.id }}" id="fav-btn"
+            class="p-2 rounded-full border border-gray-200 hover:bg-red-50 transition group {{ 'text-red-500 bg-red-50' if is_favorited else 'text-gray-400 bg-white' }}">
+            <i class="fa-{{ 'solid' if is_favorited else 'regular' }} fa-heart text-xl"></i>
+        </button>
+        {% endif %}
+        <div class="text-left">
+            <p class="text-3xl font-bold text-primary-600">{{ listing.price }}</p>
+            <p class="text-gray-500 text-sm">ج.م / {{ 'شهرياً' if listing.rental_period ==
+                'monthly' else 'أسبوعياً' }}</p>
+        </div>
+    </div>
+    {% if avg_rating > 0 %}
+    <div class="flex items-center gap-1 text-yellow-500 text-sm font-bold">
+        <i class="fa-solid fa-star"></i> {{ avg_rating|round(1) }} ({{ listing.reviews|length }}
+        تقييم)
+    </div>
+    {% endif %}
+</div>

@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map { height: 320px; z-index: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Breadcrumb -->
+        {% set breadcrumbs = [
+            {'text': 'الغرف', 'link': url_for('listings.browse')},
+            {'text': listing.title}
+        ] %}
+        {% include "components/breadcrumb.html" %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Gallery -->
+                {% include "components/detail/gallery.html" %}
+
+                <!-- Details -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <div class="flex justify-between items-start border-b pb-4 mb-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">{{ listing.title }}</h1>
+                            <p class="text-gray-500 mt-1 flex items-center gap-2">
+                                <i class="fa-solid fa-location-dot text-primary-500"></i>
+                                {{ listing.city|ar_city }}، {{ listing.area }}
+                            </p>
+                        </div>
+                        {% include "components/detail/price_box.html" %}
+                    </div>
+
+                    <!-- Compatibility Badge -->
+                    {% include "components/detail/compatibility_section.html" %}
+
+                    <!-- Specs -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <i class="fa-solid fa-users text-gray-400 mb-1 block"></i>
+                            <span class="text-sm text-gray-500 block">الغرف</span>
+                            <span class="font-semibold text-gray-900">{{ listing.type }}</span>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <i class="fa-solid fa-venus-mars text-gray-400 mb-1 block"></i>
+                            <span class="text-sm text-gray-500 block">الجنس</span>
+                            <span class="font-semibold text-gray-900">{{ listing.gender_req|ar_gender }}</span>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <i class="fa-solid fa-bed text-gray-400 mb-1 block"></i>
+                            <span class="text-sm text-gray-500 block">متاح</span>
+                            <span class="font-semibold text-gray-900">{{ listing.available_places }} سرير</span>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <i class="fa-solid fa-calendar-check text-gray-400 mb-1 block"></i>
+                            <span class="text-sm text-gray-500 block">التوافر</span>
+                            <span class="font-semibold text-gray-900">فوري</span>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-blue max-w-none mb-8">
+                        <h3 class="text-lg font-bold text-gray-900 border-b pb-2 mb-4">الوصف</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            {{ listing.description }}
+                        </p>
+                    </div>
+
+                    <!-- Amenities -->
+                    {% include "components/detail/amenities.html" %}
+
+                    <div class="mb-8">
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">القواعد والشروط</h3>
+                        <ul class="list-disc list-inside text-gray-600 space-y-1">
+                            <li>ممنوع التدخين داخل الغرفة</li>
+                            <li>الهدوء بعد الساعة 11 مساءً</li>
+                            <li>الحفاظ على نظافة المكان</li>
+                        </ul>
+                    </div>
+
+                    <!-- Map Section -->
+                    {% include "components/detail/map.html" %}
+
+                    <!-- Reviews -->
+                    {% include "components/detail/reviews.html" %}
+                </div>
+            </div>
+
+            <!-- Booking Sidebar -->
+            <div class="lg:col-span-1">
+                {% include "components/detail/booking_card.html" %}
+
+                <!-- Safety Tip -->
+                <div class="bg-red-50 rounded-lg border border-red-100 p-4 mt-6">
+                    <div class="flex gap-3">
+                        <div class="flex-shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-red-800">تنبيه أمني</h4>
+                            <p class="text-xs text-red-700 mt-1">
+                                لا تقم بتحويل أي أموال قبل معاينة السكن والتأكد منه. استخدم نظام المدفوعات داخل المنصة
+                                فقط.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/maps.js') }}"></script>
+{% endblock %}

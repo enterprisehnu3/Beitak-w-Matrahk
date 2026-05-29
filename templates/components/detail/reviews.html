@@ -1,0 +1,87 @@
+<div class="border-t pt-8">
+    <h3 class="text-xl font-bold text-gray-900 mb-6">آراء الساكنين والتقييمات</h3>
+
+    <div class="space-y-6 mb-8">
+        {% if listing.reviews %}
+        {% for review in listing.reviews %}
+        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold">
+                        {{ review.author.username[0]|upper }}
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-900">{{ review.author.username }}</p>
+                        <p class="text-[10px] text-gray-400">{{
+                            review.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                </div>
+                <div class="flex text-yellow-500 text-xs">
+                    {% for i in range(review.rating) %}<i class="fa-solid fa-star"></i>{% endfor %}
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed">{{ review.comment }}</p>
+            
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <form action="{{ url_for('listings.delete_review', id=review.id) }}" method="POST" class="mt-3 text-left">
+                <button type="submit" class="text-xs text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded transition" onclick="return confirm('هل أنت متأكد من حذف هذا التقييم كمسئ/سبام؟')">
+                    <i class="fa-solid fa-trash-can ml-1"></i>حذف (مسئ / سبام)
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-center text-gray-400 text-sm py-4">لا توجد تقييمات لهذا السكن بعد.</p>
+        {% endif %}
+    </div>
+
+    {% if current_user.is_authenticated and current_user.id != listing.owner_id %}
+        {% set has_confirmed_booking = [] %}
+        {% for booking in current_user.bookings %}
+            {% if booking.listing_id == listing.id and booking.status == 'confirmed' %}
+                {% set _ = has_confirmed_booking.append(1) %}
+            {% endif %}
+        {% endfor %}
+
+        {% if has_confirmed_booking %}
+        <div class="bg-white p-6 rounded-xl border-2 border-blue-50">
+            <h4 class="font-bold text-gray-900 mb-4">أضف تقييمك وتجربتك</h4>
+            <form action="{{ url_for('listings.submit_review', id=listing.id) }}" method="POST">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">التقييم</label>
+                    <div class="flex gap-2 text-2xl text-gray-300" id="star-rating-container">
+                        <input type="radio" name="rating" value="5" id="star5" class="hidden" required>
+                        <label for="star5" class="cursor-pointer star-label" data-value="5"><i class="fa-solid fa-star"></i></label>
+
+                        <input type="radio" name="rating" value="4" id="star4" class="hidden">
+                        <label for="star4" class="cursor-pointer star-label" data-value="4"><i class="fa-solid fa-star"></i></label>
+
+                        <input type="radio" name="rating" value="3" id="star3" class="hidden">
+                        <label for="star3" class="cursor-pointer star-label" data-value="3"><i class="fa-solid fa-star"></i></label>
+
+                        <input type="radio" name="rating" value="2" id="star2" class="hidden">
+                        <label for="star2" class="cursor-pointer star-label" data-value="2"><i class="fa-solid fa-star"></i></label>
+
+                        <input type="radio" name="rating" value="1" id="star1" class="hidden">
+                        <label for="star1" class="cursor-pointer star-label" data-value="1"><i class="fa-solid fa-star"></i></label>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <textarea name="comment" rows="3" placeholder="اكتب رأيك هنا بكل أمانة..."
+                        class="w-full border-gray-200 rounded-lg text-sm focus:ring-primary-500"></textarea>
+                </div>
+                <button type="submit"
+                    class="bg-primary-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-primary-700">نشر
+                    التقييم</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="bg-gray-50 p-6 rounded-xl border border-dashed border-gray-300 text-center">
+            <i class="fa-solid fa-lock text-gray-300 text-2xl mb-2"></i>
+            <p class="text-gray-500 text-sm">يمكنك إضافة تقييم فقط بعد إتمام حجزك في هذا السكن.</p>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>

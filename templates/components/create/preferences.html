@@ -1,0 +1,25 @@
+<div class="sm:col-span-3">
+    <label for="type" class="block text-sm font-medium text-gray-700">نوع السكن</label>
+    <select id="type" name="type"
+        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+        <option value="room" {% if listing and listing.type == 'room' %}selected{% endif %}>غرفة مستقلة</option>
+        <option value="bed" {% if listing and listing.type == 'bed' %}selected{% endif %}>سرير في غرفة مشتركة</option>
+    </select>
+</div>
+<div class="sm:col-span-3">
+    <label for="gender_req" class="block text-sm font-medium text-gray-700">مطلوب</label>
+    <select id="gender_req" name="gender_req"
+        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+        <option value="any" {% if listing and listing.gender_req == 'any' %}selected{% endif %}>الكل</option>
+        <option value="male" {% if listing and listing.gender_req == 'male' %}selected{% endif %}>ذكور فقط</option>
+        <option value="female" {% if listing and listing.gender_req == 'female' %}selected{% endif %}>إناث فقط</option>
+    </select>
+</div>
+<div class="sm:col-span-6">
+    <label for="description" class="block text-sm font-medium text-gray-700">وصف تفصيلي</label>
+    <div class="mt-1">
+        <textarea id="description" name="description" rows="3"
+            class="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border border-gray-300 rounded-md p-3"
+            placeholder="وصف للغرفة، الأثاث المتاح، المميزات...">{{ listing.description if listing else '' }}</textarea>
+    </div>
+</div>

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            <div class="bg-primary-600 p-6 text-white text-center">
+                <h2 class="text-2xl font-bold">إتمام عملية الدفع</h2>
+                <p class="text-primary-100 mt-2">يرجى إدخال بيانات الدفع لتأكيد حجز "{{ booking.listing.title }}"</p>
+            </div>
+            
+            <div class="p-8">
+                <!-- Summary -->
+                <div class="mb-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h3 class="font-bold text-gray-900 mb-4 border-b pb-3">تفاصيل الحجز</h3>
+                    
+                    <div class="flex items-center gap-4 mb-4 pb-4 border-b border-gray-100">
+                        <img src="{{ booking.listing.images[0].image_path if booking.listing.images else '/static/img/placeholder.png' }}" class="w-20 h-20 rounded-lg object-cover">
+                        <div>
+                            <p class="font-bold text-gray-900">{{ booking.listing.title }}</p>
+                            <p class="text-sm text-gray-500"><i class="fa-solid fa-location-dot"></i> {{ booking.listing.city|ar_city }}, {{ booking.listing.area }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-gray-600">رسوم الحجز (مقدم الإيجار):</span>
+                        <span class="font-bold text-gray-900">{{ booking.listing.price }} ج.م</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-gray-600">رسوم الخدمة:</span>
+                        <span class="font-bold text-gray-900">0 ج.م</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                        <span class="text-lg font-bold text-gray-900">الإجمالي:</span>
+                        <span class="font-bold text-primary-600 text-2xl">{{ booking.listing.price }} ج.م</span>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('booking.process_payment', booking_id=booking.id) }}" method="POST">
+                    <h3 class="font-bold text-gray-900 mb-4">بيانات البطاقة</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">الاسم على البطاقة</label>
+                            <input type="text" required class="w-full border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="مثال: Ahmed Ali">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">رقم البطاقة</label>
+                            <div class="relative">
+                                <input type="text" required pattern="[\d\s]{19}" maxlength="19" class="w-full border-gray-300 rounded-lg pl-10 focus:ring-primary-500 focus:border-primary-500 text-left" placeholder="0000 0000 0000 0000" dir="ltr">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-regular fa-credit-card text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">تاريخ الانتهاء</label>
+                                <input type="text" required pattern="(0[1-9]|1[0-2])\/[0-9]{2}" maxlength="5" placeholder="MM/YY" class="w-full border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-center" dir="ltr">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">الرقم السري (CVV)</label>
+                                <input type="password" required pattern="\d{3,4}" maxlength="4" class="w-full border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-center" placeholder="123" dir="ltr">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8">
+                        <button type="submit" class="w-full bg-primary-600 text-white py-4 px-4 rounded-xl font-bold hover:bg-primary-700 transition shadow-lg shadow-primary-500/30 text-lg flex justify-center items-center gap-3">
+                            <i class="fa-solid fa-lock"></i> دفع وتأكيد الحجز ({{ booking.listing.price }} ج.م)
+                        </button>
+                    </div>
+                    
+                    <div class="mt-6 flex flex-col items-center justify-center gap-2">
+                        <div class="flex gap-2 text-2xl text-gray-300">
+                            <i class="fa-brands fa-cc-visa hover:text-blue-700 transition"></i>
+                            <i class="fa-brands fa-cc-mastercard hover:text-red-500 transition"></i>
+                        </div>
+                        <p class="text-xs text-gray-400 flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-shield-halved text-green-500"></i> مدفوعاتك محمية ومشفرة بأحدث تقنيات الأمان
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add simple formatter for credit card input
+    const ccInput = document.querySelector('input[placeholder="0000 0000 0000 0000"]');
+    ccInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '').substring(0, 16);
+        let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formatted;
+    });
+
+    // Add formatter for expiry date
+    const expInput = document.querySelector('input[placeholder="MM/YY"]');
+    expInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '').substring(0, 4);
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        e.target.value = value;
+    });
+</script>
+{% endblock %}

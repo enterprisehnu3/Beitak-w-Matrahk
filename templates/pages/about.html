@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-black text-gray-900 mb-4">عن منصة بيتك ومطرحك</h1>
+        <p class="text-xl text-gray-600">المنصة الأولى في مصر لتنظيم وتسهيل تجربة السكن المشترك.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
+        <div class="prose prose-lg prose-primary max-w-none text-gray-700">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">رؤيتنا</h2>
+            <p class="mb-8">
+                نسعى في "بيتك ومطرحك" إلى توفير بيئة آمنة وموثوقة للطلاب والموظفين للبحث عن سكن مشترك يتناسب مع احتياجاتهم وميزانيتهم. نؤمن بأن السكن المناسب هو بداية الاستقرار والنجاح.
+            </p>
+
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">ماذا نقدم؟</h2>
+            <ul class="space-y-4 mb-8 list-none pl-0">
+                <li class="flex gap-3">
+                    <i class="fa-solid fa-check text-primary-600 mt-1"></i>
+                    <span><strong>للمستأجرين:</strong> منصة سهلة للبحث عن غرف أو سراير في سكن مشترك مع زملاء لهم نفس الاهتمامات.</span>
+                </li>
+                <li class="flex gap-3">
+                    <i class="fa-solid fa-check text-primary-600 mt-1"></i>
+                    <span><strong>لأصحاب السكن:</strong> طريقة آمنة لعرض الوحدات السكنية واختيار المستأجرين الأنسب بكل سهولة وثقة.</span>
+                </li>
+                <li class="flex gap-3">
+                    <i class="fa-solid fa-check text-primary-600 mt-1"></i>
+                    <span><strong>الأمان والموثوقية:</strong> نظام تقييم متكامل وتحقق من الهويات لضمان تجربة آمنة للجميع.</span>
+                </li>
+            </ul>
+
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">لماذا بيتك ومطرحك؟</h2>
+            <p class="mb-8">
+                بدأت الفكرة من معاناة حقيقية يعيشها آلاف المغتربين في مصر. قررنا تصميم منصة تجمع بين سهولة الاستخدام، الأمان، والتواصل الفعال بين المؤجر والمستأجر للقضاء على عشوائية السكن المشترك.
+            </p>
+
+            <div class="bg-primary-50 rounded-xl p-6 text-center mt-12 border border-primary-100">
+                <h3 class="text-xl font-bold text-primary-900 mb-2">ابدأ تجربتك الآن</h3>
+                <p class="text-primary-700 mb-6">انضم إلى مجتمع بيتك ومطرحك واستمتع بتجربة سكن مختلفة.</p>
+                <a href="{{ url_for('auth.register') }}" class="inline-block bg-primary-600 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:bg-primary-700 transition">سجل حسابك مجاناً</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
