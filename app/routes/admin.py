@@ -64,6 +64,14 @@ def verify_user(id):
     user.is_verified = True
     user.id_rejected = False
     user.reliability_score = 100
+    
+    send_notification(
+        user_id=user.id,
+        title='تم توثيق حسابك بنجاح!',
+        message='تهانينا، تمت مراجعة وثائق الهوية الخاصة بك وقبولها. حسابك الآن موثق بالكامل ويمكنك استخدام جميع مميزات المنصة.',
+        link=url_for('dashboard.index')
+    )
+    
     db.session.commit()
     flash(f'تم توثيق حساب {user.username} بنجاح', 'success')
     return redirect(url_for('admin.dashboard'))
