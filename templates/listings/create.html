@@ -9,7 +9,7 @@
         </div>
     </div>
 
-    <form class="space-y-8 divide-y divide-gray-200 bg-white p-8 shadow rounded-lg border border-gray-100"
+    <form id="create-listing-form" class="space-y-8 divide-y divide-gray-200 bg-white p-8 shadow rounded-lg border border-gray-100"
         action="{{ url_for('listings.create') }}" method="POST" enctype="multipart/form-data">
         <div class="space-y-8 divide-y divide-gray-200">
 
@@ -60,4 +60,18 @@
 {% block extra_scripts %}
 {% include "listings/_map_script.html" %}
 <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script>
+document.getElementById('create-listing-form').addEventListener('submit', function(e) {
+    const imagesInput = document.getElementById('listing-images');
+    if (!imagesInput || !imagesInput.files || imagesInput.files.length === 0) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'مطلوب صور للإعلان',
+            text: 'يرجى اختيار صورة واحدة على الأقل للسكن قبل نشر الإعلان.',
+            confirmButtonText: 'حسناً'
+        });
+    }
+});
+</script>
 {% endblock %}

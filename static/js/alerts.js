@@ -30,13 +30,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
 /**
  * Replaces native confirm() with a styled SweetAlert2 dialog
- * @param {HTMLFormElement} formEl - The form to submit if confirmed
+ * @param {HTMLFormElement|HTMLButtonElement} targetEl - The form or button that triggered the confirm
  * @param {string} title - Modal title
  * @param {string} text - Modal description
  * @param {string} icon - SweetAlert2 icon type
  */
-function swalConfirm(formEl, title, text, icon) {
+function swalConfirm(targetEl, title, text, icon) {
     if (typeof event !== "undefined") event.preventDefault();
+    let formEl = targetEl;
+    let clickedButton = null;
+    if (targetEl && (targetEl.tagName === 'BUTTON' || targetEl.tagName === 'INPUT' || targetEl.tagName === 'A')) {
+        clickedButton = targetEl;
+        formEl = targetEl.form;
+    }
     Swal.fire({
         title: title || "هل أنت متأكد؟",
         text: text || "",
@@ -53,7 +59,14 @@ function swalConfirm(formEl, title, text, icon) {
             cancelButton: "swal2-cancel-btn"
         }
     }).then((result) => {
-        if (result.isConfirmed) {
+        if (result.isConfirmed && formEl) {
+            if (clickedButton && clickedButton.name) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = clickedButton.name;
+                hiddenInput.value = clickedButton.value;
+                formEl.appendChild(hiddenInput);
+            }
             formEl.submit();
         }
     });

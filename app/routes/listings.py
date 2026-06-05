@@ -139,16 +139,35 @@ def create():
         return redirect(url_for('main.index'))
 
     if request.method == 'POST':
+        title = request.form.get('title')
+        price = request.form.get('price')
+        city = request.form.get('city')
+        area = request.form.get('area')
+        description = request.form.get('description')
+        listing_type = request.form.get('type')
+        gender_req = request.form.get('gender_req')
+        rental_period = request.form.get('rental_period')
+        
+        if not title or not price or not city or not area or not description or not listing_type or not gender_req or not rental_period:
+            flash('يرجى ملء جميع الحقول الإلزامية (الوصف التفصيلي إجباري)', 'danger')
+            return redirect(url_for('listings.create'))
+
+        files = request.files.getlist('images') if 'images' in request.files else []
+        valid_files = [f for f in files if f and f.filename != '']
+        if not valid_files:
+            flash('يجب رفع صورة واحدة على الأقل للإعلان', 'danger')
+            return redirect(url_for('listings.create'))
+
         new_listing = Listing(
             owner_id=current_user.id,
-            title=request.form.get('title'),
-            price=request.form.get('price'),
-            city=request.form.get('city'),
-            area=request.form.get('area'),
-            description=request.form.get('description'),
-            type=request.form.get('type'),
-            gender_req=request.form.get('gender_req'),
-            rental_period=request.form.get('rental_period'),
+            title=title,
+            price=price,
+            city=city,
+            area=area,
+            description=description,
+            type=listing_type,
+            gender_req=gender_req,
+            rental_period=rental_period,
             amenities=",".join(request.form.getlist('amenities')),
             latitude=request.form.get('latitude', type=float),
             longitude=request.form.get('longitude', type=float)
@@ -157,14 +176,11 @@ def create():
         db.session.flush() # To get listing.id
 
         # Handle image uploads
-        if 'images' in request.files:
-            files = request.files.getlist('images')
-            for file in files:
-                if file and file.filename != '':
-                    img_path = save_upload(file, subfolder='listings')
-                    if img_path:
-                        img = ListingImage(listing_id=new_listing.id, image_path=img_path)
-                        db.session.add(img)
+        for file in valid_files:
+            img_path = save_upload(file, subfolder='listings')
+            if img_path:
+                img = ListingImage(listing_id=new_listing.id, image_path=img_path)
+                db.session.add(img)
 
         try:
             db.session.commit()
@@ -192,19 +208,36 @@ def edit(id):
             image_id = request.form.get('delete_image')
             image_to_delete = ListingImage.query.get(image_id)
             if image_to_delete and (image_to_delete.listing_id == listing.id or current_user.role == 'admin'):
+                total_images = ListingImage.query.filter_by(listing_id=listing.id).count()
+                if total_images <= 1:
+                    flash('لا يمكن حذف الصورة الأخيرة. يجب أن يحتوي الإعلان على صورة واحدة على الأقل.', 'danger')
+                    return redirect(url_for('listings.edit', id=id))
                 db.session.delete(image_to_delete)
                 db.session.commit()
                 flash('تم حذف الصورة بنجاح', 'info')
                 return redirect(url_for('listings.edit', id=id))
 
-        listing.title = request.form.get('title')
-        listing.price = request.form.get('price')
-        listing.city = request.form.get('city')
-        listing.area = request.form.get('area')
-        listing.description = request.form.get('description')
-        listing.type = request.form.get('type')
-        listing.gender_req = request.form.get('gender_req')
-        listing.rental_period = request.form.get('rental_period')
+        title = request.form.get('title')
+        price = request.form.get('price')
+        city = request.form.get('city')
+        area = request.form.get('area')
+        description = request.form.get('description')
+        listing_type = request.form.get('type')
+        gender_req = request.form.get('gender_req')
+        rental_period = request.form.get('rental_period')
+        
+        if not title or not price or not city or not area or not description or not listing_type or not gender_req or not rental_period:
+            flash('يرجى ملء جميع الحقول الإلزامية (الوصف التفصيلي إجباري)', 'danger')
+            return redirect(url_for('listings.edit', id=id))
+
+        listing.title = title
+        listing.price = price
+        listing.city = city
+        listing.area = area
+        listing.description = description
+        listing.type = listing_type
+        listing.gender_req = gender_req
+        listing.rental_period = rental_period
         listing.latitude = request.form.get('latitude', type=float)
         listing.longitude = request.form.get('longitude', type=float)
         listing.amenities = ",".join(request.form.getlist('amenities'))
