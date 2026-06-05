@@ -24,12 +24,22 @@ def login():
                 banned_until_str = 'دائم' if is_permanent else user.banned_until.strftime('%Y-%m-%d — %H:%M UTC')
                 # ISO format for JS countdown
                 banned_until_iso = '' if is_permanent else user.banned_until.strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
+                
+                # Query the latest ban appeal support ticket for the user
+                from app.models import SupportTicket
+                latest_appeal = SupportTicket.query.filter(
+                    SupportTicket.user_id == user.id,
+                    SupportTicket.subject.like('[التماس رفع حظر]%')
+                ).order_by(SupportTicket.created_at.desc()).first()
+
                 return render_template(
                     'auth/banned.html',
+                    user_id=user.id,
                     is_permanent=is_permanent,
                     banned_until_str=banned_until_str,
                     banned_until_iso=banned_until_iso,
-                    ban_reason=user.ban_reason or 'مخالفة سياسة المنصة'
+                    ban_reason=user.ban_reason or 'مخالفة سياسة المنصة',
+                    latest_appeal=latest_appeal
                 )
 
             login_user(user, remember=remember)
@@ -71,10 +81,12 @@ def register():
         password = request.form.get('password')
         national_id_number = request.form.get('national_id_number')
         
+        fullname = request.form.get('fullname')
+        
         # Basic Validation
         confirm_password = request.form.get('confirm_password')
         
-        if not username or not email or not password or not national_id_number:
+        if not username or not email or not password or not national_id_number or not fullname:
             flash('يرجى ملء جميع الحقول المطلوبة', 'warning')
             return redirect(url_for('auth.register'))
 
@@ -102,12 +114,21 @@ def register():
             flash('رقم البطاقة مسجل بالفعل', 'warning')
             return redirect(url_for('auth.register'))
 
-        if 'id_card' not in request.files or request.files['id_card'].filename == '':
-            flash('يجب رفع صورة بطاقة الرقم القومي لإتمام التسجيل', 'danger')
+        if 'id_front' not in request.files or request.files['id_front'].filename == '':
+            flash('يجب رفع صورة وجه بطاقة الرقم القومي لإتمام التسجيل', 'danger')
+            return redirect(url_for('auth.register'))
+            
+        if 'id_back' not in request.files or request.files['id_back'].filename == '':
+            flash('يجب رفع صورة ظهر بطاقة الرقم القومي لإتمام التسجيل', 'danger')
+            return redirect(url_for('auth.register'))
+
+        if 'id_selfie_upload' not in request.files or request.files['id_selfie_upload'].filename == '':
+            flash('يجب رفع صورتك الشخصية مع البطاقة لإتمام التسجيل', 'danger')
             return redirect(url_for('auth.register'))
             
         new_user = User(
             username=username, 
+            fullname=fullname,
             email=email, 
             role='pending', 
             national_id_number=national_id_number,
@@ -116,26 +137,60 @@ def register():
         )
         new_user.set_password(password)
 
-        # Use upload service
-        if 'id_card' in request.files:
-            file = request.files['id_card']
-            img_path = save_upload(file, subfolder='ids')
-            if img_path:
-                new_user.national_id_image = img_path
+        # Upload and save the three ID files
+        id_front_path = ""
+        id_back_path = ""
+        id_selfie_path = ""
+        
+        if 'id_front' in request.files:
+            file = request.files['id_front']
+            id_front_path = save_upload(file, subfolder='ids') or ""
+            
+        if 'id_back' in request.files:
+            file = request.files['id_back']
+            id_back_path = save_upload(file, subfolder='ids') or ""
+            
+        if 'id_selfie_upload' in request.files:
+            file = request.files['id_selfie_upload']
+            id_selfie_path = save_upload(file, subfolder='ids') or ""
+
+        # Concatenate ID front and back paths by comma
+        if id_front_path or id_back_path:
+            new_user.national_id_image = f"{id_front_path},{id_back_path}"
+            
+        if id_selfie_path:
+            new_user.id_selfie_image = id_selfie_path
+
+        # Save profile image during registration (upload once only - STRICTLY MANDATORY)
+        if 'profile_image' not in request.files or request.files['profile_image'].filename == '':
+            flash('يجب رفع صورة الملف الشخصي لإتمام التسجيل', 'danger')
+            return redirect(url_for('auth.register'))
+            
+        file = request.files['profile_image']
+        img_path = save_upload(file, subfolder='profiles')
+        if img_path:
+            new_user.profile_image = img_path
+        else:
+            flash('حدث خطأ أثناء رفع صورة الملف الشخصي، يرجى المحاولة مرة أخرى', 'danger')
+            return redirect(url_for('auth.register'))
 
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
-        # Redirect to the new selfie verification step
-        return redirect(url_for('auth.selfie_verification'))
+        # Since selfie was uploaded during registration, go straight to role choice
+        return redirect(url_for('auth.choose_role'))
         
     return render_template('auth/register.html')
 
 @auth_bp.route('/selfie_verification', methods=['GET', 'POST'])
 @login_required
 def selfie_verification():
+    # If they already have a selfie image (uploaded during registration), proceed to choose role
+    if current_user.id_selfie_image:
+        return redirect(url_for('auth.choose_role'))
+        
     # Only pending users who haven't uploaded a selfie yet should access this
-    if current_user.role != 'pending' and current_user.id_selfie_image:
+    if current_user.role != 'pending':
         return redirect(url_for('dashboard.index'))
         
     if request.method == 'POST':
@@ -209,27 +264,47 @@ def view_profile(user_id):
 @login_required
 def edit_profile():
     if request.method == 'POST':
+        # Handle Username change and check for uniqueness
+        new_username = request.form.get('username', '').strip()
+        if new_username and new_username != current_user.username:
+            # Check if this username is already taken by another user
+            existing_user = User.query.filter_by(username=new_username).first()
+            if existing_user:
+                flash('اسم المستخدم هذا مسجل بالفعل لآخر، يرجى اختيار اسم مختلف.', 'danger')
+                return redirect(url_for('auth.edit_profile'))
+            current_user.username = new_username
+
         # Handle regular profile fields
-        current_user.smoker = True if request.form.get('smoker') == 'true' else False
-        current_user.sleep_schedule = request.form.get('sleep_schedule')
-        current_user.personality = request.form.get('personality')
         current_user.occupation = request.form.get('occupation')
         
-        # Handle profile image upload
-        if 'profile_image' in request.files:
-            file = request.files['profile_image']
-            if file and file.filename != '':
-                # Validate extension
-                allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
-                ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+        # If user is admin, allow editing fullname, email, and profile_image
+        if current_user.role == 'admin':
+            new_fullname = request.form.get('fullname', '').strip()
+            if new_fullname:
+                current_user.fullname = new_fullname
                 
-                if ext not in allowed_extensions:
-                    flash('عذراً، التنسيقات المسموح بها هي: PNG, JPG, JPEG, WEBP فقط', 'danger')
+            new_email = request.form.get('email', '').strip()
+            if new_email and new_email != current_user.email:
+                # Check for email uniqueness
+                existing_email_user = User.query.filter_by(email=new_email).first()
+                if existing_email_user:
+                    flash('البريد الإلكتروني هذا مسجل بالفعل لحساب آخر.', 'danger')
                     return redirect(url_for('auth.edit_profile'))
+                current_user.email = new_email
                 
-                img_path = save_upload(file, subfolder='profiles')
-                if img_path:
-                    current_user.profile_image = img_path
+            # Allow admin to change profile image
+            if 'profile_image' in request.files:
+                file = request.files['profile_image']
+                if file and file.filename != '':
+                    allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+                    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+                    if ext not in allowed_extensions:
+                        flash('عذراً، التنسيقات المسموح بها هي: PNG, JPG, JPEG, WEBP فقط', 'danger')
+                        return redirect(url_for('auth.edit_profile'))
+                        
+                    img_path = save_upload(file, subfolder='profiles')
+                    if img_path:
+                        current_user.profile_image = img_path
                     
         db.session.commit()
         flash('تم تحديث الملف الشخصي بنجاح', 'success')
@@ -240,23 +315,25 @@ def edit_profile():
 @auth_bp.route('/delete-profile-image', methods=['POST'])
 @login_required
 def delete_profile_image():
-    if current_user.profile_image:
-        import os
-        from flask import current_app
-        try:
-            # Safely attempt to delete the physical file if it exists
-            rel_path = current_user.profile_image.lstrip('/')
-            if rel_path.startswith('static/uploads/'):
-                full_path = os.path.join(current_app.root_path, '..', rel_path)
-                if os.path.exists(full_path) and os.path.isfile(full_path):
-                    os.remove(full_path)
-        except Exception as e:
-            current_app.logger.error(f"Error deleting profile image file: {e}")
-            
-        current_user.profile_image = None
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'تم حذف الصورة الشخصية بنجاح'})
-    return jsonify({'success': False, 'message': 'لا توجد صورة شخصية لحذفها'}), 400
+    if current_user.role == 'admin':
+        if current_user.profile_image:
+            import os
+            from flask import current_app
+            try:
+                rel_path = current_user.profile_image.lstrip('/')
+                if rel_path.startswith('static/uploads/'):
+                    full_path = os.path.join(current_app.root_path, '..', rel_path)
+                    if os.path.exists(full_path) and os.path.isfile(full_path):
+                        os.remove(full_path)
+            except Exception as e:
+                current_app.logger.error(f"Error deleting profile image file: {e}")
+                
+            current_user.profile_image = None
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'تم حذف الصورة الشخصية بنجاح'})
+        return jsonify({'success': False, 'message': 'لا توجد صورة شخصية لحذفها'}), 400
+        
+    return jsonify({'success': False, 'message': 'لا يمكن تعديل أو حذف صورة الملف الشخصي بعد تعيينها عند التسجيل لضمان الأمان.'}), 400
 
 @auth_bp.route('/change-password', methods=['POST'])
 @login_required
@@ -290,22 +367,36 @@ def reupload_id():
         return redirect(url_for('dashboard.index'))
         
     if request.method == 'POST':
-        if 'id_card' not in request.files or request.files['id_card'].filename == '':
-            flash('يجب رفع صورة البطاقة الجديدة', 'danger')
+        if 'id_front' not in request.files or request.files['id_front'].filename == '':
+            flash('يجب رفع صورة وجه بطاقة الرقم القومي', 'danger')
             return redirect(url_for('auth.reupload_id'))
             
-        file = request.files['id_card']
-        img_path = save_upload(file, subfolder='ids')
-        if img_path:
-            current_user.national_id_image = img_path
-            # Reset verification status
-            current_user.id_rejected = False
-            current_user.is_verified = False
-            db.session.commit()
+        if 'id_back' not in request.files or request.files['id_back'].filename == '':
+            flash('يجب رفع صورة ظهر بطاقة الرقم القومي', 'danger')
+            return redirect(url_for('auth.reupload_id'))
             
-            flash('تم رفع صورة البطاقة بنجاح، يرجى الانتظار لحين مراجعتها من الإدارة.', 'success')
-            return redirect(url_for('dashboard.index'))
+        if 'id_selfie_upload' not in request.files or request.files['id_selfie_upload'].filename == '':
+            flash('يجب رفع صورتك الشخصية مع البطاقة', 'danger')
+            return redirect(url_for('auth.reupload_id'))
             
+        # Save uploads
+        id_front_path = save_upload(request.files['id_front'], subfolder='ids') or ""
+        id_back_path = save_upload(request.files['id_back'], subfolder='ids') or ""
+        id_selfie_path = save_upload(request.files['id_selfie_upload'], subfolder='ids') or ""
+        
+        if id_front_path or id_back_path:
+            current_user.national_id_image = f"{id_front_path},{id_back_path}"
+        if id_selfie_path:
+            current_user.id_selfie_image = id_selfie_path
+            
+        # Reset verification status
+        current_user.id_rejected = False
+        current_user.is_verified = False
+        db.session.commit()
+        
+        flash('تم إعادة رفع وثائق الهوية بنجاح، يرجى الانتظار لحين مراجعتها من الإدارة.', 'success')
+        return redirect(url_for('dashboard.index'))
+        
     return render_template('auth/reupload_id.html')
 
 @auth_bp.route('/forgot_password', methods=['GET', 'POST'])
@@ -323,3 +414,24 @@ def forgot_password():
             return redirect(url_for('auth.forgot_password'))
             
     return render_template('auth/forgot_password.html')
+
+@auth_bp.route('/appeal_ban/<int:user_id>', methods=['POST'])
+def appeal_ban(user_id):
+    user = User.query.get_or_404(user_id)
+    subject = request.form.get('subject')
+    message = request.form.get('message')
+    
+    if not subject or not message:
+        return jsonify({'success': False, 'message': 'يرجى ملء جميع الحقول المطلوبة'}), 400
+        
+    from app.models import SupportTicket
+    ticket = SupportTicket(
+        user_id=user.id,
+        subject=f"[التماس رفع حظر] {subject}",
+        message=message,
+        status='open'
+    )
+    db.session.add(ticket)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'تم إرسال طلب الالتماس بنجاح، ستقوم الإدارة بمراجعته قريباً.'})

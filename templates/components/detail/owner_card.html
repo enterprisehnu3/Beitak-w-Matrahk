@@ -1,12 +1,17 @@
 <div class="mt-8 border-t pt-6">
     <div class="flex items-center gap-3">
         <a href="{{ url_for('auth.view_profile', user_id=listing.owner.id) }}">
-            <img src="https://ui-avatars.com/api/?name={{ listing.owner.username }}&background=EBF5FF&color=2563EB"
+            {% if listing.owner.profile_image %}
+            <img src="{{ listing.owner.profile_image }}"
+                class="w-12 h-12 rounded-full border border-gray-100 hover:ring-2 hover:ring-primary-400 transition object-cover">
+            {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ listing.owner.fullname or listing.owner.username }}&background=EBF5FF&color=2563EB"
                 class="w-12 h-12 rounded-full border border-gray-100 hover:ring-2 hover:ring-primary-400 transition">
+            {% endif %}
         </a>
         <div>
             <a href="{{ url_for('auth.view_profile', user_id=listing.owner.id) }}" class="hover:text-primary-600 transition">
-                <p class="text-sm font-bold text-gray-900">{{ listing.owner.username }}</p>
+                <p class="text-sm font-bold text-gray-900">{{ listing.owner.fullname or listing.owner.username }}</p>
             </a>
             <div class="flex items-center gap-1 mt-0.5">
                 <span class="text-[10px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-bold">موثوقية: {{ listing.owner.reliability_score }}%</span>

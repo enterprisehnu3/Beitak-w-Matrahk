@@ -4,15 +4,20 @@
             <i class="fa-solid fa-arrow-right"></i>
         </a>
         <div class="flex items-center gap-3">
-            <img src="https://ui-avatars.com/api/?name={{ other_user.username }}&background=EBF5FF&color=2563EB"
-                class="w-10 h-10 rounded-full border border-gray-200">
+            <a href="{{ url_for('auth.view_profile', user_id=other_user.id) }}" class="flex-shrink-0">
+                {% if other_user.profile_image %}
+                <img src="{{ other_user.profile_image }}"
+                    class="w-10 h-10 rounded-full border border-gray-200 object-cover hover:ring-2 hover:ring-primary-400 transition">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ other_user.fullname or other_user.username }}&background=EBF5FF&color=2563EB"
+                    class="w-10 h-10 rounded-full border border-gray-200 hover:ring-2 hover:ring-primary-400 transition">
+                {% endif %}
+            </a>
             <div>
                 <h2 class="text-lg font-bold text-gray-900">
-                    {% if current_user.role == 'admin' %}
-                    <a href="{{ url_for('auth.view_profile', user_id=other_user.id) }}" class="hover:text-primary-600 transition">{{ other_user.username }}</a>
-                    {% else %}
-                    {{ other_user.username }}
-                    {% endif %}
+                    <a href="{{ url_for('auth.view_profile', user_id=other_user.id) }}" class="hover:text-primary-600 transition">
+                        {{ other_user.fullname or other_user.username }}
+                    </a>
                 </h2>
                 <p class="text-xs text-green-500 flex items-center gap-1">
                     <span class="w-2 h-2 rounded-full bg-green-500"></span> متصل الآن

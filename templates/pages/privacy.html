@@ -9,13 +9,20 @@
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
         <div class="prose prose-lg prose-primary max-w-none text-gray-700">
-            <p class="mb-8 text-sm text-gray-500">آخر تحديث: أبريل 2026</p>
+            {% if request.args.get('ref') == 'register' %}
+            <div class="mb-8">
+                <a href="{{ url_for('auth.register') }}" class="inline-flex items-center gap-2 text-sm font-bold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-xl transition duration-200">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    الرجوع لإنشاء حساب
+                </a>
+            </div>
+            {% endif %}
 
             <p class="mb-6">نحن في "بيتك ومطرحك" نولي أهمية قصوى لخصوصية مستخدمينا. توضح هذه السياسة كيفية جمع واستخدام وحماية بياناتك.</p>
 
             <h3 class="text-xl font-bold text-gray-900 mb-3">1. البيانات التي نجمعها</h3>
             <ul class="list-disc pr-6 mb-6 space-y-2">
-                <li><strong>البيانات الشخصية:</strong> مثل الاسم، البريد الإلكتروني، رقم الهاتف، والنوع.</li>
+                <li><strong>البيانات الشخصية:</strong> مثل الاسم، البريد الإلكتروني، والنوع.</li>
                 <li><strong>بيانات التوثيق:</strong> صورة البطاقة الشخصية (يتم تشفيرها ولا تُعرض للعامة).</li>
                 <li><strong>بيانات الاستخدام:</strong> تصفحك للموقع، عمليات البحث، وتفاعلاتك مع الإعلانات.</li>
             </ul>
@@ -29,7 +36,7 @@
             </ul>
 
             <h3 class="text-xl font-bold text-gray-900 mb-3">3. مشاركة البيانات</h3>
-            <p class="mb-6">نحن لا نبيع أو نؤجر بياناتك الشخصية لأي جهة خارجية. يتم مشاركة معلومات الاتصال الأساسية فقط بين المؤجر والمستأجر بعد تأكيد الحجز لتسهيل التواصل.</p>
+            <p class="mb-6">نحن لا نبيع أو نؤجر بياناتك الشخصية لأي جهة خارجية. يتم التواصل بين المؤجر والمستأجر حصرياً عبر نظام المراسلة الداخلي للمنصة ولا يتم مشاركة أي أرقام هواتف أو بيانات اتصال خارجية.</p>
 
             <h3 class="text-xl font-bold text-gray-900 mb-3">4. أمان البيانات</h3>
             <p class="mb-6">نستخدم أحدث تقنيات التشفير وإجراءات الأمان لحماية بياناتك من الوصول غير المصرح به أو التعديل أو الإفشاء.</p>

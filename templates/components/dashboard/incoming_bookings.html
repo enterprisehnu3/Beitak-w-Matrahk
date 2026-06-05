@@ -30,15 +30,21 @@
                         <div class="flex items-center">
                             <div class="flex-shrink-0 h-10 w-10">
                                 <a href="{{ url_for('auth.view_profile', user_id=booking.tenant.id) }}">
-                                    <img class="h-10 w-10 rounded-full hover:ring-2 hover:ring-primary-500 transition"
-                                        src="https://ui-avatars.com/api/?name={{ booking.tenant.username }}&background=random"
+                                    {% if booking.tenant.profile_image %}
+                                    <img class="h-10 w-10 rounded-full hover:ring-2 hover:ring-primary-500 transition object-cover border border-gray-100"
+                                        src="{{ booking.tenant.profile_image }}"
                                         alt="">
+                                    {% else %}
+                                    <img class="h-10 w-10 rounded-full hover:ring-2 hover:ring-primary-500 transition"
+                                        src="https://ui-avatars.com/api/?name={{ booking.tenant.fullname or booking.tenant.username }}&background=random"
+                                        alt="">
+                                    {% endif %}
                                 </a>
                             </div>
                             <div class="mr-4">
                                 <div class="text-sm font-medium text-gray-900">
                                     <a href="{{ url_for('auth.view_profile', user_id=booking.tenant.id) }}" class="hover:text-primary-600 transition">
-                                        {{ booking.tenant.username }}
+                                        {{ booking.tenant.fullname or booking.tenant.username }}
                                     </a>
                                 </div>
                                 <div class="text-sm text-gray-500">{{ 'مستأجر' if booking.tenant.role == 'student' else 'موظف' if booking.tenant.role == 'employee' else booking.tenant.role }}</div>

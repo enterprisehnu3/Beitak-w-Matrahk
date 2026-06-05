@@ -33,17 +33,15 @@
                 <!-- Tenant Details -->
                 <div class="md:w-1/2">
                     <p class="text-gray-400 text-sm mb-2 font-medium">بيانات المستأجر</p>
-                    <p class="font-bold text-gray-900 mb-1">{{ booking.tenant.username }}</p>
-                    <p class="text-gray-500 text-sm">{{ booking.tenant.email }}</p>
-                    <p class="text-gray-500 text-sm mt-1 text-gray-400">لا يوجد رقم هاتف</p>
+                    <p class="font-bold text-gray-900 mb-1">{{ booking.tenant.fullname or booking.tenant.username }}</p>
+                    <p class="text-xs text-gray-400 font-mono mt-1 select-all" dir="ltr" style="text-align: right;">@{{ booking.tenant.username }}</p>
                 </div>
 
                 <!-- Homeowner Details -->
                 <div class="md:w-1/2 md:text-left">
-                    <p class="text-gray-400 text-sm mb-2 font-medium">بيانات المالك والتواصل</p>
-                    <p class="font-bold text-gray-900 mb-1">{{ booking.listing.owner.username }}</p>
-                    <p class="text-gray-500 text-sm">{{ booking.listing.owner.email }}</p>
-                    <p class="text-gray-500 text-sm mt-1 text-gray-400">لا يوجد رقم هاتف</p>
+                    <p class="text-gray-400 text-sm mb-2 font-medium">بيانات المالك</p>
+                    <p class="font-bold text-gray-900 mb-1">{{ booking.listing.owner.fullname or booking.listing.owner.username }}</p>
+                    <p class="text-xs text-gray-400 font-mono mt-1 select-all" dir="ltr" style="text-align: left;">@{{ booking.listing.owner.username }}</p>
                 </div>
             </div>
 

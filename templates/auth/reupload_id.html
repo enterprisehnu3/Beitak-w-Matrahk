@@ -12,25 +12,55 @@
         </div>
 
         <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-            <form action="{{ url_for('auth.reupload_id') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <form id="reupload-form" action="{{ url_for('auth.reupload_id') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                 <!-- ID Upload -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-4">صورة بطاقة الرقم القومي الجديدة <span class="text-red-500">*</span></label>
-                    <div id="id-upload-area"
-                        class="relative flex flex-col justify-center items-center px-6 pt-10 pb-10 border-2 border-gray-300 border-dashed rounded-2xl hover:bg-gray-50 transition-all cursor-pointer group">
-                        <div class="space-y-2 text-center">
-                            <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-400 group-hover:text-primary-500 transition-colors"></i>
-                            <div class="flex text-sm text-gray-600">
-                                <label for="file-upload"
-                                    class="relative cursor-pointer bg-white rounded-md font-bold text-primary-600 hover:text-primary-500 focus-within:outline-none">
-                                    <span>اختر ملفاً</span>
-                                    <input id="file-upload" name="id_card" type="file" class="sr-only" required
-                                        accept="image/png,image/jpeg,image/jpg">
-                                </label>
-                                <p class="pr-1 font-medium">أو اسحب وأفلت هنا</p>
+                    <label class="block text-sm font-bold text-gray-800 mb-3 text-right">وثائق إثبات الهوية المطلوبة للتحقق <span class="text-red-500">*</span></label>
+                    <p class="text-xs text-gray-500 leading-relaxed mb-4 text-right" dir="rtl">
+                        يرجى إعادة رفع الصور الثلاث المطلوبة للتحقق من الهوية وتفعيل الحساب:
+                    </p>
+                    
+                    <div class="grid grid-cols-1 gap-4 mb-6">
+                        <!-- Front Side Upload -->
+                        <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:bg-gray-50 hover:border-primary-400 transition cursor-pointer relative focus-within:ring-2 focus-within:ring-primary-500" onclick="document.getElementById('id_front').click()">
+                            <div class="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-2 text-primary-600">
+                                <i class="fa-solid fa-id-card text-lg"></i>
                             </div>
-                            <p class="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-                            <p id="file-name" class="text-xs text-green-600 font-bold mt-2 hidden"></p>
+                            <span class="block text-xs font-bold text-gray-700">1. وجه البطاقة الشخصية</span>
+                            <span class="block text-[10px] text-gray-400 mt-1">الوجه الأمامي للبطاقة</span>
+                            <input type="file" id="id_front" name="id_front" class="absolute opacity-0 w-px h-px pointer-events-none" required accept="image/png,image/jpeg,image/jpg" onchange="previewFile(this, 'front-preview', 'front-name')">
+                            <div id="front-preview" class="mt-2 hidden w-full h-32 rounded-lg overflow-hidden border bg-gray-100">
+                                <img src="" class="w-full h-full object-cover">
+                            </div>
+                            <p id="front-name" class="text-[10px] text-green-600 font-semibold mt-1 truncate max-w-full"></p>
+                        </div>
+
+                        <!-- Back Side Upload -->
+                        <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:bg-gray-50 hover:border-primary-400 transition cursor-pointer relative focus-within:ring-2 focus-within:ring-primary-500" onclick="document.getElementById('id_back').click()">
+                            <div class="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-2 text-primary-600">
+                                <i class="fa-solid fa-id-card text-lg"></i>
+                            </div>
+                            <span class="block text-xs font-bold text-gray-700">2. ظهر البطاقة الشخصية</span>
+                            <span class="block text-[10px] text-gray-400 mt-1">الوجه الخلفي للبطاقة</span>
+                            <input type="file" id="id_back" name="id_back" class="absolute opacity-0 w-px h-px pointer-events-none" required accept="image/png,image/jpeg,image/jpg" onchange="previewFile(this, 'back-preview', 'back-name')">
+                            <div id="back-preview" class="mt-2 hidden w-full h-32 rounded-lg overflow-hidden border bg-gray-100">
+                                <img src="" class="w-full h-full object-cover">
+                            </div>
+                            <p id="back-name" class="text-[10px] text-green-600 font-semibold mt-1 truncate max-w-full"></p>
+                        </div>
+
+                        <!-- Selfie Upload -->
+                        <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:bg-gray-50 hover:border-primary-400 transition cursor-pointer relative focus-within:ring-2 focus-within:ring-primary-500" onclick="document.getElementById('id_selfie_upload').click()">
+                            <div class="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-2 text-primary-600">
+                                <i class="fa-solid fa-camera text-lg"></i>
+                            </div>
+                            <span class="block text-xs font-bold text-gray-700">3. صورة سيلفي مع البطاقة</span>
+                            <span class="block text-[10px] text-gray-400 mt-1">امسك البطاقة بجانب وجهك</span>
+                            <input type="file" id="id_selfie_upload" name="id_selfie_upload" class="absolute opacity-0 w-px h-px pointer-events-none" required accept="image/png,image/jpeg,image/jpg" onchange="previewFile(this, 'selfie-preview', 'selfie-name')">
+                            <div id="selfie-preview" class="mt-2 hidden w-full h-32 rounded-lg overflow-hidden border bg-gray-100">
+                                <img src="" class="w-full h-full object-cover">
+                            </div>
+                            <p id="selfie-name" class="text-[10px] text-green-600 font-semibold mt-1 truncate max-w-full"></p>
                         </div>
                     </div>
                 </div>
@@ -48,17 +78,121 @@
         </div>
 
         <!-- Tips for clear photo -->
-        <div class="mt-8 bg-blue-50 rounded-xl p-4 border border-blue-100">
-            <h4 class="text-blue-800 font-bold mb-2 text-sm">نصائح من أجل قبول التوثيق:</h4>
-            <ul class="text-xs text-blue-700 space-y-1 list-disc list-inside opacity-90">
-                <li>تأكد من أن جميع البيانات في البطاقة واضحة ومقروءة.</li>
-                <li>تجنب انعكاس الإضاءة (الفلاش) على البطاقة.</li>
-                <li>صور البطاقة في مكان ذو إضاءة جيدة.</li>
-                <li>تأكد من أن أركان البطاقة الأربعة ظاهرة في الصورة.</li>
-            </ul>
+        <div class="mt-8 bg-blue-50 rounded-xl p-5 border border-blue-100 space-y-4">
+            <div>
+                <h4 class="text-blue-800 font-extrabold mb-2 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-lightbulb"></i> نصائح لتصوير بطاقة الرقم القومي (الوجه والظهر):
+                </h4>
+                <ul class="text-xs text-blue-700 space-y-1.5 list-disc list-inside opacity-90 pr-2">
+                    <li>تأكد من أن جميع البيانات في البطاقة واضحة ومقروءة تماماً.</li>
+                    <li>تجنب انعكاس الإضاءة أو فلاش الكاميرا على البطاقة الشخصية.</li>
+                    <li>صور البطاقة في مكان ذو إضاءة طبيعية وجيدة.</li>
+                    <li>تأكد من أن أركان البطاقة الأربعة ظاهرة بالكامل داخل إطار الصورة.</li>
+                </ul>
+            </div>
+            
+            <div class="border-t border-blue-200/60 pt-3">
+                <h4 class="text-blue-800 font-extrabold mb-2 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-camera"></i> نصائح لتصوير السيلفي مع البطاقة الشخصية:
+                </h4>
+                <ul class="text-xs text-blue-700 space-y-1.5 list-disc list-inside opacity-90 pr-2">
+                    <li>أمسك البطاقة بجانب وجهك مباشرة دون أن تغطي أصابعك أي بيانات أو صور عليها.</li>
+                    <li>تأكد من أن ملامح وجهك واضحة تماماً وغير مغطاة بنظارة شمسية أو قبعة أو كمامة.</li>
+                    <li>اضبط تركيز الكاميرا (Focus) ليكون وجهك وبيانات البطاقة مقروئين معاً بوضوح تام.</li>
+                    <li>تجنب استخدام أي فلاتر تجميلية أو تعديلات رقمية على الصورة لضمان قبول التوثيق.</li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+ document.getElementById('reupload-form').addEventListener('submit', function(e) {
+     const front = document.getElementById('id_front');
+     const back = document.getElementById('id_back');
+     const selfie = document.getElementById('id_selfie_upload');
+     
+     // Reset all custom validity
+     front.setCustomValidity('');
+     back.setCustomValidity('');
+     selfie.setCustomValidity('');
+     
+     if (!front.files || front.files.length === 0) {
+         e.preventDefault();
+         front.setCustomValidity('يرجى اختيار صورة لوجه البطاقة الشخصية للمتابعة.');
+         front.reportValidity();
+         return false;
+     }
+     
+     if (!back.files || back.files.length === 0) {
+         e.preventDefault();
+         back.setCustomValidity('يرجى اختيار صورة لظهر البطاقة الشخصية للمتابعة.');
+         back.reportValidity();
+         return false;
+     }
+     
+     if (!selfie.files || selfie.files.length === 0) {
+         e.preventDefault();
+         selfie.setCustomValidity('يرجى رفع صورتك الشخصية وأنت تحمل البطاقة للمتابعة.');
+         selfie.reportValidity();
+         return false;
+     }
+ });
+
+ // Add automatic Arabic custom validity error messages on all required fields
+ const inputs = document.querySelectorAll('#reupload-form input');
+ inputs.forEach(input => {
+     input.addEventListener('invalid', function() {
+         if (input.validity.valueMissing) {
+             if (input.id === 'id_front') {
+                 input.setCustomValidity('يرجى اختيار صورة لوجه البطاقة الشخصية للمتابعة.');
+             } else if (input.id === 'id_back') {
+                 input.setCustomValidity('يرجى اختيار صورة لظهر البطاقة الشخصية للمتابعة.');
+             } else if (input.id === 'id_selfie_upload') {
+                 input.setCustomValidity('يرجى رفع صورتك الشخصية وأنت تحمل البطاقة للمتابعة.');
+             } else {
+                 input.setCustomValidity('يرجى ملء هذا الحقل.');
+             }
+         }
+     });
+
+     input.addEventListener('input', function() {
+         input.setCustomValidity('');
+     });
+ });
+
+ function previewFile(input, previewId, nameId) {
+     const file = input.files[0];
+     const previewDiv = document.getElementById(previewId);
+     const nameP = document.getElementById(nameId);
+     
+     if (file) {
+         if (file.size > 5 * 1024 * 1024) {
+             Swal.fire({
+                 icon: 'error',
+                 title: 'حجم الملف كبير',
+                 text: 'الحد الأقصى لحجم الملف هو 5 ميجابايت'
+             });
+             input.value = '';
+             previewDiv.classList.add('hidden');
+             nameP.classList.add('hidden');
+             return;
+         }
+         const reader = new FileReader();
+         reader.onload = function(e) {
+             previewDiv.querySelector('img').src = e.target.result;
+             previewDiv.classList.remove('hidden');
+         };
+         reader.readAsDataURL(file);
+         
+         nameP.textContent = 'تم اختيار: ' + file.name;
+         nameP.classList.remove('hidden');
+         input.setCustomValidity(''); // Clear validity when file selected
+     } else {
+         previewDiv.classList.add('hidden');
+         nameP.classList.add('hidden');
+     }
+ }
+</script>
 {% endblock %}

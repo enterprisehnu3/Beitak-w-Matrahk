@@ -42,11 +42,26 @@
                     <p class="text-xs text-gray-700 leading-relaxed">أهلاً بك في بيتك و مطرحك! أنا مساعدك الذكي، كيف يمكنني مساعدتك اليوم؟</p>
                 </div>
             </div>
-            <!-- Suggested Questions -->
-            <div class="flex flex-wrap gap-2 mt-2 mr-10">
-                <button onclick="sendBotMessage('search')" class="text-[10px] bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:border-primary-500 hover:text-primary-600 transition shadow-sm">كيف أبحث عن سكن؟</button>
-                <button onclick="sendBotMessage('book')" class="text-[10px] bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:border-primary-500 hover:text-primary-600 transition shadow-sm">طريقة الحجز؟</button>
-                <button onclick="sendBotMessage('verify')" class="text-[10px] bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:border-primary-500 hover:text-primary-600 transition shadow-sm">كيف أوثق حسابي؟</button>
+            <!-- Suggested Actions -->
+            <div class="flex flex-col gap-2 mt-3 mr-10" id="chatbot-options">
+                <button onclick="handleBotAction('faq')" class="text-xs bg-white border border-gray-200 text-right text-gray-700 px-4 py-2.5 rounded-xl hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50/30 transition shadow-sm flex items-center justify-between w-full">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question text-primary-500 text-sm"></i> الأسئلة الشائعة
+                    </span>
+                    <i class="fa-solid fa-chevron-left text-[10px] text-gray-400"></i>
+                </button>
+                <button onclick="handleBotAction('track')" class="text-xs bg-white border border-gray-200 text-right text-gray-700 px-4 py-2.5 rounded-xl hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50/30 transition shadow-sm flex items-center justify-between w-full">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-list-check text-green-500 text-sm"></i> تتبع الحجوزات
+                    </span>
+                    <i class="fa-solid fa-chevron-left text-[10px] text-gray-400"></i>
+                </button>
+                <button onclick="handleBotAction('support')" class="text-xs bg-white border border-gray-200 text-right text-gray-700 px-4 py-2.5 rounded-xl hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50/30 transition shadow-sm flex items-center justify-between w-full">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-headset text-indigo-500 text-sm"></i> التحدث مع الدعم الفني
+                    </span>
+                    <i class="fa-solid fa-chevron-left text-[10px] text-gray-400"></i>
+                </button>
             </div>
         </div>
 
@@ -95,7 +110,7 @@
         'search': 'يمكنك البحث عن سكن من خلال صفحة "تصفح الغرف"، واستخدام الفلاتر المتاحة (المدينة، السعر، النوع) أو محرك البحث الجديد للوصول لما يناسبك.',
         'book': 'لحجز سكن، ادخل على تفاصيل الغرفة واضغط على "طلب حجز الآن"، سيتم توجيهك لصفحة الدفع لتأكيد الطلب وإخطار المالك.',
         'verify': 'لتوثيق حسابك، يرجى رفع صورة بطاقة الرقم القومي عند التسجيل، وسيقوم المشرف بمراجعتها وتدقيق البيانات خلال 24 ساعة.',
-        'default': 'أعتذر، لم أفهم سؤالك جيداً. يمكنك الاختيار من الأسئلة المقترحة أو التواصل مع الدعم الفني عبر info@beitak.com'
+        'default': 'أعتذر، لم أفهم سؤالك جيداً. يمكنك الاختيار من الأسئلة المقترحة، أو العودة للقائمة الرئيسية.'
     };
 
     function addMessage(text, isBot = true) {
@@ -117,6 +132,72 @@
 
     function sendBotMessage(key) {
         addMessage(botReplies[key] || botReplies['default']);
+        
+        // Show a helper main menu return button under the message
+        setTimeout(() => {
+            const returnBtnContainer = document.createElement('div');
+            returnBtnContainer.className = 'flex gap-2 mt-2 mr-10';
+            returnBtnContainer.innerHTML = `
+                <button onclick="showMainMenu()" class="text-[10px] bg-primary-50 border border-primary-100 text-primary-600 px-3 py-1.5 rounded-full hover:bg-primary-100 transition shadow-sm font-bold flex items-center gap-1"><i class="fa-solid fa-arrow-rotate-right"></i> القائمة الرئيسية</button>
+            `;
+            chatMessages.appendChild(returnBtnContainer);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 300);
+    }
+
+    function handleBotAction(action) {
+        if (action === 'faq') {
+            addMessage("تفضل باختيار أحد الأسئلة الشائعة التالية:", true);
+            
+            const faqContainer = document.createElement('div');
+            faqContainer.className = 'flex flex-wrap gap-2 mt-2 mr-10';
+            faqContainer.innerHTML = `
+                <button onclick="sendBotMessage('search')" class="text-[10px] bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:border-primary-500 hover:text-primary-600 transition shadow-sm">كيف أبحث عن سكن؟</button>
+                <button onclick="sendBotMessage('book')" class="text-[10px] bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:border-primary-500 hover:text-primary-600 transition shadow-sm">طريقة الحجز؟</button>
+                <button onclick="sendBotMessage('verify')" class="text-[10px] bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full hover:border-primary-500 hover:text-primary-600 transition shadow-sm">كيف أوثق حسابي؟</button>
+                <button onclick="showMainMenu()" class="text-[10px] bg-primary-50 border border-primary-100 text-primary-600 px-3 py-1.5 rounded-full hover:bg-primary-100 transition shadow-sm font-bold flex items-center gap-1"><i class="fa-solid fa-arrow-rotate-right"></i> القائمة الرئيسية</button>
+            `;
+            chatMessages.appendChild(faqContainer);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        } else if (action === 'track') {
+            addMessage("جاري توجيهك إلى لوحة التحكم لمتابعة وتتبع حجوزاتك الحالية...", true);
+            setTimeout(() => {
+                window.location.href = "{{ url_for('dashboard.index') }}";
+            }, 1500);
+        } else if (action === 'support') {
+            addMessage("جاري تحويلك لصفحة فتح تذكرة دعم فني جديدة... يسعدنا خدمتك دائماً!", true);
+            setTimeout(() => {
+                window.location.href = "{{ url_for('support.submit_ticket') }}";
+            }, 1500);
+        }
+    }
+
+    function showMainMenu() {
+        addMessage("كيف يمكنني مساعدتك الآن؟", true);
+        const menuContainer = document.createElement('div');
+        menuContainer.className = 'flex flex-col gap-2 mt-3 mr-10';
+        menuContainer.innerHTML = `
+            <button onclick="handleBotAction('faq')" class="text-xs bg-white border border-gray-200 text-right text-gray-700 px-4 py-2.5 rounded-xl hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50/30 transition shadow-sm flex items-center justify-between w-full">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-primary-500 text-sm"></i> الأسئلة الشائعة
+                </span>
+                <i class="fa-solid fa-chevron-left text-[10px] text-gray-400"></i>
+            </button>
+            <button onclick="handleBotAction('track')" class="text-xs bg-white border border-gray-200 text-right text-gray-700 px-4 py-2.5 rounded-xl hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50/30 transition shadow-sm flex items-center justify-between w-full">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-list-check text-green-500 text-sm"></i> تتبع الحجوزات
+                </span>
+                <i class="fa-solid fa-chevron-left text-[10px] text-gray-400"></i>
+            </button>
+            <button onclick="handleBotAction('support')" class="text-xs bg-white border border-gray-200 text-right text-gray-700 px-4 py-2.5 rounded-xl hover:border-primary-500 hover:text-primary-600 hover:bg-primary-50/30 transition shadow-sm flex items-center justify-between w-full">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-headset text-indigo-500 text-sm"></i> التحدث مع الدعم الفني
+                </span>
+                <i class="fa-solid fa-chevron-left text-[10px] text-gray-400"></i>
+            </button>
+        `;
+        chatMessages.appendChild(menuContainer);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     chatForm.onsubmit = (e) => {
@@ -129,9 +210,12 @@
         
         // Basic matching
         setTimeout(() => {
-            if(text.includes('بحث') || text.includes('تصفح')) sendBotMessage('search');
-            else if(text.includes('حجز') || text.includes('دفع')) sendBotMessage('book');
-            else if(text.includes('توثيق') || text.includes('بطاق')) sendBotMessage('verify');
+            const lowerText = text.toLowerCase();
+            if(lowerText.includes('بحث') || lowerText.includes('تصفح')) sendBotMessage('search');
+            else if(lowerText.includes('حجز') || lowerText.includes('دفع')) sendBotMessage('book');
+            else if(lowerText.includes('توثيق') || lowerText.includes('بطاق')) sendBotMessage('verify');
+            else if(lowerText.includes('دعم') || lowerText.includes('تذكرة') || lowerText.includes('فني') || lowerText.includes('مساعدة')) handleBotAction('support');
+            else if(lowerText.includes('تتبع') || lowerText.includes('لوحة') || lowerText.includes('حجوزات')) handleBotAction('track');
             else sendBotMessage('default');
         }, 600);
     };

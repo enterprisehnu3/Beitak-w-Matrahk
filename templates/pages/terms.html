@@ -9,6 +9,15 @@
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
         <div class="prose prose-lg prose-primary max-w-none text-gray-700">
+            {% if request.args.get('ref') == 'register' %}
+            <div class="mb-8">
+                <a href="{{ url_for('auth.register') }}" class="inline-flex items-center gap-2 text-sm font-bold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-4 py-2.5 rounded-xl transition duration-200">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    الرجوع لإنشاء حساب
+                </a>
+            </div>
+            {% endif %}
+
             <p class="mb-6">مرحباً بك في منصة "بيتك ومطرحك". تُنظم هذه الشروط والأحكام استخدامك للمنصة التي تعمل كوسيط رقمي موثوق يربط بين أصحاب العقارات (أصحاب الغرف أو الشقق المشتركة) والمستأجرين (الطلاب والموظفين المغتربين). باستخدامك للمنصة، فإنك توافق بالكامل على هذه الشروط.</p>
 
             <h3 class="text-xl font-bold text-gray-900 mb-3">1. التسجيل والتحقق من الهوية</h3>

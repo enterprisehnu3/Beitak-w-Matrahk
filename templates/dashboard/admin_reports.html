@@ -35,14 +35,14 @@
 
                             <!-- Reporter -->
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ report.reporter.username }}</div>
-                                <div class="text-xs text-gray-400">{{ report.reporter.email }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ report.reporter.fullname or report.reporter.username }}</div>
+                                <div class="text-xs text-gray-400">@{{ report.reporter.username }}</div>
                             </td>
 
                             <!-- Reported User -->
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="text-sm font-semibold text-red-600">{{ report.reported_user.username }}</div>
-                                <div class="text-xs text-gray-400">{{ report.reported_user.email }}</div>
+                                <div class="text-sm font-semibold text-red-600">{{ report.reported_user.fullname or report.reported_user.username }}</div>
+                                <div class="text-xs text-gray-400">@{{ report.reported_user.username }}</div>
                                 {% if report.reported_user.banned_until and report.reported_user.banned_until > now %}
                                 <span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
                                     <i class="fa-solid fa-ban text-[10px]"></i>

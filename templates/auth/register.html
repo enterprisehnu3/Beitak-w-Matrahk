@@ -12,24 +12,31 @@
             </p>
         </div>
 
-        <form class="mt-8 space-y-6" action="{{ url_for('auth.register') }}" method="POST" enctype="multipart/form-data">
+        <form id="register-form" class="mt-8 space-y-6" action="{{ url_for('auth.register') }}" method="POST" enctype="multipart/form-data">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Row 1 -->
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">اسم المستخدم</label>
-                    <input type="text" name="username" id="username" required
-                        pattern="^[a-zA-Z\u0600-\u06FF0-9\s]+$" title="يرجى إدخال حروف أو أرقام"
-                        oninput="this.value = this.value.replace(/[^a-zA-Z\u0600-\u06FF0-9\s]/g, '')"
+                    <label for="fullname" class="block text-sm font-medium text-gray-700">الاسم الثنائي (باللغة العربية)</label>
+                    <input type="text" name="fullname" id="fullname" required placeholder="مثال: أحمد محمد"
+                        pattern="^[أ-يأ-ي\u0600-\u06FF\s]+$" title="يرجى إدخال الاسم الثنائي باللغة العربية فقط"
+                        oninput="this.value = this.value.replace(/[^\u0600-\u06FF\s]/g, '')"
                         class="mt-1 h-11 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 border">
                 </div>
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">اسم المستخدم (أحرف إنجليزية، أرقام، ورموز . _ -)</label>
+                    <input type="text" name="username" id="username" required placeholder="مثال: ahmed.10"
+                        pattern="^[a-zA-Z0-9._-]+$" title="يرجى إدخال أحرف إنجليزية، أرقام، ونقاط أو شرطة سفلية/عادية فقط"
+                        oninput="this.value = this.value.replace(/[^a-zA-Z0-9._-]/g, '')"
+                        class="mt-1 h-11 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 border">
+                </div>
+
+                <!-- Row 2 -->
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
                     <input type="email" name="email" id="email" required
                         class="mt-1 h-11 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 border">
                 </div>
-
-                <!-- Row 2 -->
                 <div>
                     <label for="national_id_number" class="block text-sm font-medium text-gray-700">رقم البطاقة (14 رقم)</label>
                     <input type="text" name="national_id_number" id="national_id_number" required 
@@ -37,10 +44,13 @@
                         oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 14)"
                         class="mt-1 h-11 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 border">
                 </div>
-                <div>
+
+                <!-- Row 3 -->
+                <div class="md:col-span-2">
                     <label for="gender" class="block text-sm font-medium text-gray-700">الجنس</label>
-                    <select id="gender" name="gender"
-                        class="mt-1 h-11 block w-full px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <select id="gender" name="gender" required
+                        class="mt-1 h-11 block w-full border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <option value="" disabled selected hidden>اختر الجنس</option>
                         <option value="male">ذكر</option>
                         <option value="female">أنثى</option>
                     </select>
@@ -73,43 +83,313 @@
             </div>
 
 
+            <!-- Profile Image Upload (NEW) -->
+            <div class="border-t border-gray-200 pt-6">
+                <label class="block text-sm font-semibold text-gray-800 mb-1">صورة الملف الشخصي (Profile Picture) <span class="text-red-500">*</span></label>
+                <p class="text-xs text-red-500 font-bold mb-3 flex items-center gap-1.5 leading-relaxed" dir="rtl">
+                    <i class="fa-solid fa-circle-exclamation text-sm"></i>
+                    تنبيه هام جداً: يُسمح برفع صورة الملف الشخصي مرة واحدة فقط عند التسجيل، ولن تكون قادراً على تغييرها أو حذفها لاحقاً لتعزيز الأمان ومصداقية الحسابات.
+                </p>
+                <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 border-2 border-white shadow-md flex-shrink-0 flex items-center justify-center">
+                        <img id="avatar-preview" src="https://ui-avatars.com/api/?name=User&background=EBF5FF&color=2563EB" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-grow">
+                        <label for="avatar-upload" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-xl text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition shadow-sm gap-2">
+                            <i class="fa-solid fa-camera"></i> اختيار صورة الحساب
+                        </label>
+                        <input id="avatar-upload" name="profile_image" type="file" class="absolute opacity-0 w-px h-px pointer-events-none" required accept="image/png,image/jpeg,image/webp" onchange="previewAvatar(this)">
+                        <p class="text-[10px] text-gray-400 mt-2">تنسيق PNG, JPG أو WEBP حتى 5 ميجابايت.</p>
+                        <p id="avatar-name" class="text-xs text-green-600 font-bold mt-1 hidden"></p>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+            function previewAvatar(input) {
+                const file = input.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'حجم الصورة كبير',
+                            text: 'الحد الأقصى لحجم الصورة هو 5 ميجابايت'
+                        });
+                        input.value = '';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('avatar-preview').src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    const filename = document.getElementById('avatar-name');
+                    filename.textContent = 'تم اختيار: ' + file.name;
+                    filename.classList.remove('hidden');
+                }
+            }
+            </script>
+
             <!-- ID Upload -->
             <div class="border-t border-gray-200 pt-6">
-                <label class="block text-sm font-medium text-gray-700">صورة بطاقة الرقم القومي (للتحقق) <span
-                        class="text-red-500">*</span></label>
-                <div id="id-upload-area"
-                    class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50 transition cursor-pointer">
-                    <div class="space-y-1 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
-                            viewBox="0 0 48 48" aria-hidden="true">
-                            <path
-                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <div class="flex text-sm text-gray-600">
-                            <label for="file-upload"
-                                class="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
-                                <span>رفع ملف</span>
-                                <input id="file-upload" name="id_card" type="file" class="sr-only" required
-                                    accept="image/png,image/jpeg,image/jpg">
-                            </label>
-                            <p class="pl-1">أو اسحب وأفلت</p>
+                <label class="block text-sm font-semibold text-gray-800 mb-1">وثائق إثبات الهوية المطلوبة للتحقق <span class="text-red-500">*</span></label>
+                <p class="text-xs text-gray-500 leading-relaxed mb-4 text-right" dir="rtl">
+                    يرجى رفع الصور الثلاث المطلوبة للتحقق من الهوية وتفعيل الحساب:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <!-- Front Side Upload -->
+                    <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:bg-gray-50 hover:border-primary-400 transition cursor-pointer relative focus-within:ring-2 focus-within:ring-primary-500" onclick="document.getElementById('id_front').click()">
+                        <div class="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-2 text-primary-600">
+                            <i class="fa-solid fa-id-card text-lg"></i>
                         </div>
-                        <p class="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-                        <p id="file-name" class="text-xs text-green-600 font-medium mt-1 hidden"></p>
+                        <span class="block text-xs font-bold text-gray-700">1. وجه البطاقة الشخصية</span>
+                        <span class="block text-[10px] text-gray-400 mt-1">الوجه الأمامي للبطاقة</span>
+                        <input type="file" id="id_front" name="id_front" class="absolute opacity-0 w-px h-px pointer-events-none" required accept="image/png,image/jpeg,image/jpg" onchange="previewFile(this, 'front-preview', 'front-name')">
+                        <div id="front-preview" class="mt-2 hidden w-full h-24 rounded-lg overflow-hidden border bg-gray-100">
+                            <img src="" class="w-full h-full object-cover">
+                        </div>
+                        <p id="front-name" class="text-[10px] text-green-600 font-semibold mt-1 truncate max-w-full"></p>
+                    </div>
+
+                    <!-- Back Side Upload -->
+                    <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:bg-gray-50 hover:border-primary-400 transition cursor-pointer relative focus-within:ring-2 focus-within:ring-primary-500" onclick="document.getElementById('id_back').click()">
+                        <div class="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-2 text-primary-600">
+                            <i class="fa-solid fa-id-card text-lg"></i>
+                        </div>
+                        <span class="block text-xs font-bold text-gray-700">2. ظهر البطاقة الشخصية</span>
+                        <span class="block text-[10px] text-gray-400 mt-1">الوجه الخلفي للبطاقة</span>
+                        <input type="file" id="id_back" name="id_back" class="absolute opacity-0 w-px h-px pointer-events-none" required accept="image/png,image/jpeg,image/jpg" onchange="previewFile(this, 'back-preview', 'back-name')">
+                        <div id="back-preview" class="mt-2 hidden w-full h-24 rounded-lg overflow-hidden border bg-gray-100">
+                            <img src="" class="w-full h-full object-cover">
+                        </div>
+                        <p id="back-name" class="text-[10px] text-green-600 font-semibold mt-1 truncate max-w-full"></p>
+                    </div>
+
+                    <!-- Selfie Upload -->
+                    <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center hover:bg-gray-50 hover:border-primary-400 transition cursor-pointer relative focus-within:ring-2 focus-within:ring-primary-500" onclick="document.getElementById('id_selfie_upload').click()">
+                        <div class="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-2 text-primary-600">
+                            <i class="fa-solid fa-camera text-lg"></i>
+                        </div>
+                        <span class="block text-xs font-bold text-gray-700">3. صورة سيلفي مع البطاقة</span>
+                        <span class="block text-[10px] text-gray-400 mt-1">امسك البطاقة بجانب وجهك</span>
+                        <input type="file" id="id_selfie_upload" name="id_selfie_upload" class="absolute opacity-0 w-px h-px pointer-events-none" required accept="image/png,image/jpeg,image/jpg" onchange="previewFile(this, 'selfie-preview', 'selfie-name')">
+                        <div id="selfie-preview" class="mt-2 hidden w-full h-24 rounded-lg overflow-hidden border bg-gray-100">
+                            <img src="" class="w-full h-full object-cover">
+                        </div>
+                        <p id="selfie-name" class="text-[10px] text-green-600 font-semibold mt-1 truncate max-w-full"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summarized ID/Selfie Tips (NEW) -->
+            <div class="bg-blue-50/60 rounded-xl p-4 border border-blue-100/60 mt-4 text-[11px] text-blue-700 space-y-2">
+                <div class="flex items-center gap-1.5 font-bold text-blue-800">
+                    <i class="fa-solid fa-lightbulb"></i> إرشادات سريعة لضمان قبول التوثيق:
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pr-1">
+                    <div>
+                        <span class="font-bold block text-blue-800 mb-0.5">• تصوير البطاقة:</span>
+                        تأكد من وضوح البيانات تماماً، وتجنب انعكاس فلاش الضوء، والتقط الصورة من الأعلى لتظهر أركان البطاقة الأربعة.
+                    </div>
+                    <div>
+                        <span class="font-bold block text-blue-800 mb-0.5">• تصوير السيلفي:</span>
+                        أمسك البطاقة بجانب وجهك (دون تغطية أصابعك للبيانات)، وتأكد من وضوح ملامح وجهك دون نظارات أو قبعات أو فلاتر.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms and Conditions Checkbox (NEW) -->
+            <div class="border-t border-gray-200 pt-6">
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input id="agree_terms" name="agree_terms" type="checkbox" required
+                            class="focus:ring-primary-500 h-4.5 w-4.5 text-primary-600 border-gray-300 rounded transition duration-150 ease-in-out cursor-pointer">
+                    </div>
+                    <div class="mr-3 text-sm leading-5">
+                        <label for="agree_terms" class="font-medium text-gray-700 cursor-pointer select-none">
+                            لقد قرأت وأوافق على <a href="{{ url_for('main.terms', ref='register') }}" target="_blank" class="text-primary-600 hover:text-primary-500 font-bold underline transition duration-150 ease-in-out">الشروط والأحكام</a> و<a href="{{ url_for('main.privacy', ref='register') }}" target="_blank" class="text-primary-600 hover:text-primary-500 font-bold underline transition duration-150 ease-in-out">سياسة الخصوصية</a> الخاصة بالمنصة <span class="text-red-500">*</span>
+                        </label>
                     </div>
                 </div>
             </div>
 
             <div>
                 <button type="submit"
-                    class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-lg shadow-primary-500/30 transition transform hover:-translate-y-0.5">
+                    class="w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-bold rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 shadow-lg shadow-primary-500/30 transition transform hover:-translate-y-0.5">
                     متابعة للخطوة التالية <i class="fa-solid fa-arrow-left mr-2 mt-1"></i>
                 </button>
             </div>
         </form>
 
-<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+        <script>
+         document.getElementById('register-form').addEventListener('submit', function(e) {
+             const avatar = document.getElementById('avatar-upload');
+             const front = document.getElementById('id_front');
+             const back = document.getElementById('id_back');
+             const selfie = document.getElementById('id_selfie_upload');
+             const agreeTerms = document.getElementById('agree_terms');
+             const password = document.getElementById('password');
+             const confirmPassword = document.getElementById('confirm_password');
+             
+             // Reset all custom validity
+             agreeTerms.setCustomValidity('');
+             avatar.setCustomValidity('');
+             front.setCustomValidity('');
+             back.setCustomValidity('');
+             selfie.setCustomValidity('');
+             confirmPassword.setCustomValidity('');
+             password.setCustomValidity('');
+
+             // Check passwords match
+             if (password.value !== confirmPassword.value) {
+                 e.preventDefault();
+                 confirmPassword.setCustomValidity('كلمات المرور غير متطابقة!');
+                 confirmPassword.reportValidity();
+                 return false;
+             }
+             
+             // Check password strength
+             const val = password.value;
+             const isStrong = val.length >= 8 && 
+                              /[a-zA-Z]/.test(val) && 
+                              /[0-9]/.test(val) && 
+                              /[!@#$%^&*(),.?":{}|<>]/.test(val);
+             if (!isStrong) {
+                 e.preventDefault();
+                 password.setCustomValidity('يرجى استيفاء جميع شروط كلمة المرور القوية (8 أحرف، حرف، رقم، ورمز خاص).');
+                 password.reportValidity();
+                 return false;
+             }
+             
+             if (!agreeTerms.checked) {
+                 e.preventDefault();
+                 agreeTerms.setCustomValidity('يرجى تحديد هذا المربع إذا كنت ترغب في المتابعة.');
+                 agreeTerms.reportValidity();
+                 return false;
+             }
+             
+             if (!avatar.files || avatar.files.length === 0) {
+                 e.preventDefault();
+                 avatar.setCustomValidity('يرجى اختيار صورة للملف الشخصي للمتابعة.');
+                 avatar.reportValidity();
+                 return false;
+             }
+             
+             if (!front.files || front.files.length === 0) {
+                 e.preventDefault();
+                 front.setCustomValidity('يرجى اختيار صورة لوجه البطاقة الشخصية للمتابعة.');
+                 front.reportValidity();
+                 return false;
+             }
+             
+             if (!back.files || back.files.length === 0) {
+                 e.preventDefault();
+                 back.setCustomValidity('يرجى اختيار صورة لظهر البطاقة الشخصية للمتابعة.');
+                 back.reportValidity();
+                 return false;
+             }
+             
+             if (!selfie.files || selfie.files.length === 0) {
+                 e.preventDefault();
+                 selfie.setCustomValidity('يرجى رفع صورتك الشخصية وأنت تحمل البطاقة للمتابعة.');
+                 selfie.reportValidity();
+                 return false;
+             }
+         });
+
+         // Add automatic Arabic custom validity error messages on all required fields
+         const inputs = document.querySelectorAll('#register-form input, #register-form select');
+         inputs.forEach(input => {
+             input.addEventListener('invalid', function() {
+                 if (input.validity.valueMissing) {
+                     if (input.id === 'fullname') {
+                         input.setCustomValidity('يرجى إدخال الاسم الثنائي باللغة العربية.');
+                     } else if (input.id === 'username') {
+                         input.setCustomValidity('يرجى إدخال اسم المستخدم باللغة الإنجليزية.');
+                     } else if (input.id === 'email') {
+                         input.setCustomValidity('يرجى إدخال البريد الإلكتروني.');
+                     } else if (input.id === 'national_id_number') {
+                         input.setCustomValidity('يرجى إدخال رقم البطاقة المكون من 14 رقمًا.');
+                     } else if (input.id === 'password') {
+                         input.setCustomValidity('يرجى إدخال كلمة المرور.');
+                     } else if (input.id === 'confirm_password') {
+                         input.setCustomValidity('يرجى تأكيد كلمة المرور.');
+                     } else if (input.id === 'agree_terms') {
+                         input.setCustomValidity('يرجى تحديد هذا المربع إذا كنت ترغب في المتابعة.');
+                     } else if (input.id === 'avatar-upload') {
+                         input.setCustomValidity('يرجى اختيار صورة للملف الشخصي للمتابعة.');
+                     } else if (input.id === 'id_front') {
+                         input.setCustomValidity('يرجى اختيار صورة لوجه البطاقة الشخصية للمتابعة.');
+                     } else if (input.id === 'id_back') {
+                         input.setCustomValidity('يرجى اختيار صورة لظهر البطاقة الشخصية للمتابعة.');
+                     } else if (input.id === 'id_selfie_upload') {
+                         input.setCustomValidity('يرجى رفع صورتك الشخصية وأنت تحمل البطاقة للمتابعة.');
+                     } else {
+                         input.setCustomValidity('يرجى ملء هذا الحقل.');
+                     }
+                 } else if (input.validity.patternMismatch) {
+                     if (input.id === 'fullname') {
+                         input.setCustomValidity('يرجى إدخال الاسم الثنائي باللغة العربية فقط.');
+                     } else if (input.id === 'username') {
+                         input.setCustomValidity('يرجى استخدام أحرف إنجليزية وأرقام ونقاط أو شرطات فقط.');
+                     } else if (input.id === 'national_id_number') {
+                         input.setCustomValidity('يجب أن يتكون رقم البطاقة من 14 رقمًا.');
+                     } else {
+                         input.setCustomValidity('الصيغة المدخلة غير صحيحة.');
+                     }
+                 } else if (input.validity.typeMismatch && input.type === 'email') {
+                     input.setCustomValidity('يرجى إدخال عنوان بريد إلكتروني صحيح.');
+                 } else {
+                     input.setCustomValidity('');
+                 }
+             });
+
+             input.addEventListener('input', function() {
+                 input.setCustomValidity('');
+             });
+             
+             if (input.tagName === 'SELECT') {
+                 input.addEventListener('change', function() {
+                     input.setCustomValidity('');
+                 });
+             }
+         });
+
+         function previewFile(input, previewId, nameId) {
+             const file = input.files[0];
+             const previewDiv = document.getElementById(previewId);
+             const nameP = document.getElementById(nameId);
+             
+             if (file) {
+                 if (file.size > 5 * 1024 * 1024) {
+                     Swal.fire({
+                         icon: 'error',
+                         title: 'حجم الملف كبير',
+                         text: 'الحد الأقصى لحجم الملف هو 5 ميجابايت'
+                     });
+                     input.value = '';
+                     previewDiv.classList.add('hidden');
+                     nameP.classList.add('hidden');
+                     return;
+                 }
+                 const reader = new FileReader();
+                 reader.onload = function(e) {
+                     previewDiv.querySelector('img').src = e.target.result;
+                     previewDiv.classList.remove('hidden');
+                 };
+                 reader.readAsDataURL(file);
+                 
+                 nameP.textContent = 'تم اختيار: ' + file.name;
+                 nameP.classList.remove('hidden');
+                 input.setCustomValidity(''); // Clear validity when file selected
+             } else {
+                 previewDiv.classList.add('hidden');
+                 nameP.classList.add('hidden');
+             }
+         }
+        </script>
+
 <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     </div>
 </div>

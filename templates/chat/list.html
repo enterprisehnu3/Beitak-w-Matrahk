@@ -18,8 +18,13 @@
                     class="block hover:bg-gray-50 transition p-6 relative {% if unread_counts[user.id] > 0 %}bg-red-50/20{% endif %}">
                     <div class="flex items-center gap-4">
                         <div class="relative">
-                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=EBF5FF&color=2563EB"
+                            {% if user.profile_image %}
+                            <img src="{{ user.profile_image }}"
+                                class="w-14 h-14 rounded-full border border-gray-200 shadow-sm object-cover">
+                            {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ user.fullname or user.username }}&background=EBF5FF&color=2563EB"
                                 class="w-14 h-14 rounded-full border border-gray-200 shadow-sm">
+                            {% endif %}
                             {% if unread_counts[user.id] > 0 %}
                             <span class="absolute -top-1 -right-1 flex h-5 w-5">
                                 <span
@@ -33,7 +38,7 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between mb-1">
                                 <div class="flex items-center gap-2">
-                                    <h2 class="text-lg font-bold text-gray-900 truncate">{{ user.username }}</h2>
+                                    <h2 class="text-lg font-bold text-gray-900 truncate">{{ user.fullname or user.username }}</h2>
                                     {% if current_user.role == 'admin' %}
                                     <span onclick="event.preventDefault(); window.location.href='{{ url_for('auth.view_profile', user_id=user.id) }}';" 
                                        class="text-[10px] bg-primary-100 text-primary-600 px-2 py-0.5 rounded-full hover:bg-primary-600 hover:text-white transition cursor-pointer">بروفايل</span>

@@ -6,7 +6,7 @@
     <div class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
         <div>
             <h1 class="text-3xl font-black text-gray-800">لوحة التحكم الإدارية</h1>
-            <p class="text-gray-500 mt-1">مرحباً بك مجدداً، {{ current_user.username }}</p>
+            <p class="text-gray-500 mt-1">مرحباً بك مجدداً، {{ current_user.fullname or current_user.username }}</p>
         </div>
         <div class="flex gap-3 items-center">
             <a href="{{ url_for('admin.manage_reports') }}" class="bg-red-50 text-red-600 px-6 py-2 rounded-xl font-bold border border-red-200 hover:bg-red-100 transition flex items-center gap-2 relative">
@@ -150,10 +150,20 @@
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ booking.id }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            <a href="{{ url_for('auth.view_profile', user_id=booking.tenant_id) }}" class="hover:underline text-primary-600">{{ booking.tenant.username }}</a>
+                            <a href="{{ url_for('auth.view_profile', user_id=booking.tenant_id) }}" class="hover:underline text-primary-600">
+                                {{ booking.tenant.fullname or booking.tenant.username }}
+                                {% if booking.tenant.fullname %}
+                                <span class="text-xs text-gray-400 font-normal">(@{{ booking.tenant.username }})</span>
+                                {% endif %}
+                            </a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <a href="{{ url_for('auth.view_profile', user_id=booking.listing.owner_id) }}" class="hover:underline">{{ booking.listing.owner.username }}</a>
+                            <a href="{{ url_for('auth.view_profile', user_id=booking.listing.owner_id) }}" class="hover:underline">
+                                {{ booking.listing.owner.fullname or booking.listing.owner.username }}
+                                {% if booking.listing.owner.fullname %}
+                                <span class="text-xs text-gray-400 font-normal">(@{{ booking.listing.owner.username }})</span>
+                                {% endif %}
+                            </a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs">{{
                             booking.listing.title }}</td>
@@ -182,11 +192,18 @@
                 {% for user in pending_users %}
                 <li class="px-4 py-4 sm:px-6 flex items-center justify-between">
                     <div class="flex items-center">
-                        <img class="h-10 w-10 rounded-full ml-3"
-                            src="https://ui-avatars.com/api/?name={{ user.username }}&background=random">
+                        {% if user.profile_image %}
+                            <img class="h-10 w-10 rounded-full ml-3 object-cover border border-gray-100" src="{{ user.profile_image }}">
+                        {% else %}
+                            <img class="h-10 w-10 rounded-full ml-3"
+                                src="https://ui-avatars.com/api/?name={{ user.fullname or user.username }}&background=random">
+                        {% endif %}
                         <div>
                             <p class="text-sm font-bold text-gray-900">
-                                <a href="{{ url_for('auth.view_profile', user_id=user.id) }}" class="hover:text-primary-600 transition">{{ user.username }}</a>
+                                <a href="{{ url_for('auth.view_profile', user_id=user.id) }}" class="hover:text-primary-600 transition">{{ user.fullname or user.username }}</a>
+                                {% if user.fullname %}
+                                <span class="text-xs text-gray-400 font-normal">(@{{ user.username }})</span>
+                                {% endif %}
                             </p>
                             <p class="text-xs text-gray-500">{{ user.email }} | الدور: {{ 'مستأجر' if user.role == 'student' else 'مالك' if user.role == 'homeowner' else user.role }}</p>
                             <p class="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded inline-block mt-1">NID: {{ user.national_id_number }}</p>
@@ -195,17 +212,38 @@
                     <div class="flex items-center gap-4">
                         <div class="flex flex-col gap-2 items-end">
                             {% if user.national_id_image %}
-                                {% if user.national_id_image.startswith('/') %}
-                                    {% set id_img_url = user.national_id_image %}
-                                {% elif user.national_id_image.startswith('uploads') %}
-                                    {% set id_img_url = url_for('static', filename=user.national_id_image) %}
+                                {% set id_images = user.national_id_image.split(',') %}
+                                {% if id_images|length > 1 %}
+                                    {% for img in id_images %}
+                                        {% if img.strip() %}
+                                            {% if img.startswith('/') %}
+                                                {% set id_img_url = img %}
+                                            {% elif img.startswith('uploads') %}
+                                                {% set id_img_url = url_for('static', filename=img) %}
+                                            {% else %}
+                                                {% set id_img_url = url_for('static', filename='uploads/ids/' ~ img) %}
+                                            {% endif %}
+                                            <button onclick="viewIDImage('{{ id_img_url }}')" 
+                                                class="text-xs {% if loop.index == 1 %}text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100{% else %}text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100{% endif %} font-bold px-3 py-1.5 rounded-md border transition shadow-sm cursor-pointer flex items-center gap-1.5 w-full justify-center">
+                                                <i class="fa-solid fa-id-card"></i>
+                                                {% if loop.index == 1 %}وجه البطاقة{% else %}ظهر البطاقة{% endif %}
+                                            </button>
+                                        {% endif %}
+                                    {% endfor %}
                                 {% else %}
-                                    {% set id_img_url = url_for('static', filename='uploads/ids/' ~ user.national_id_image) %}
+                                    {% set img = user.national_id_image %}
+                                    {% if img.startswith('/') %}
+                                        {% set id_img_url = img %}
+                                    {% elif img.startswith('uploads') %}
+                                        {% set id_img_url = url_for('static', filename=img) %}
+                                    {% else %}
+                                        {% set id_img_url = url_for('static', filename='uploads/ids/' ~ img) %}
+                                    {% endif %}
+                                    <button onclick="viewIDImage('{{ id_img_url }}')" 
+                                        class="text-xs text-blue-700 font-bold bg-blue-50 px-3 py-1.5 rounded-md border border-blue-200 hover:bg-blue-100 transition shadow-sm cursor-pointer flex items-center gap-1.5 w-full justify-center">
+                                        <i class="fa-solid fa-id-card"></i> عرض صورة البطاقة
+                                    </button>
                                 {% endif %}
-                                <button onclick="viewIDImage('{{ id_img_url }}')" 
-                                    class="text-xs text-blue-700 font-bold bg-blue-50 px-3 py-1.5 rounded-md border border-blue-200 hover:bg-blue-100 transition shadow-sm cursor-pointer flex items-center gap-1.5">
-                                    <i class="fa-solid fa-id-card"></i> عرض صورة البطاقة
-                                </button>
                             {% endif %}
                             
                             {% if user.id_selfie_image %}
@@ -215,7 +253,7 @@
                                     {% set selfie_img_url = url_for('static', filename=user.id_selfie_image) %}
                                 {% endif %}
                                 <button onclick="viewIDImage('{{ selfie_img_url }}')" 
-                                    class="text-xs text-purple-700 font-bold bg-purple-50 px-3 py-1.5 rounded-md border border-purple-200 hover:bg-purple-100 transition shadow-sm cursor-pointer flex items-center gap-1.5">
+                                    class="text-xs text-purple-700 font-bold bg-purple-50 px-3 py-1.5 rounded-md border border-purple-200 hover:bg-purple-100 transition shadow-sm cursor-pointer flex items-center gap-1.5 w-full justify-center">
                                     <i class="fa-solid fa-camera-retro"></i> عرض صورة السيلفي
                                 </button>
                             {% endif %}
@@ -257,12 +295,23 @@
                         <span class="text-[10px] text-primary-600 font-bold">بواسطة: <a href="{{ url_for('auth.view_profile', user_id=ticket.user_id) }}" class="hover:underline">{{ ticket.user.username }}</a></span>
                         <div class="flex items-center gap-3">
                             <a href="{{ url_for('chat.talk', user_id=ticket.user_id) }}" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded text-[10px] font-bold hover:bg-indigo-100 transition">
-                                <i class="fa-solid fa-message ml-1"></i>فتح محادثة للرد
+                                <i class="fa-solid fa-message ml-1"></i>فتح محادثة للدردشة
                             </a>
                             <form action="{{ url_for('support.close_ticket', id=ticket.id) }}" method="POST">
-                                <button type="submit" class="bg-gray-800 text-white px-3 py-1 rounded text-[10px] hover:bg-black font-bold">إغلاق البلاغ</button>
+                                <button type="submit" class="bg-gray-800 text-white px-3 py-1 rounded text-[10px] hover:bg-black font-bold">إغلاق البلاغ بدون رد</button>
                             </form>
                         </div>
+                    </div>
+                    
+                    <!-- Inline Reply Form (NEW) -->
+                    <div class="mt-3 pt-3 border-t border-gray-100">
+                        <form action="{{ url_for('support.reply_ticket', id=ticket.id) }}" method="POST" class="flex gap-2">
+                            <input type="text" name="reply" placeholder="اكتب رد الإدارة الرسمي هنا لإرساله للمستخدم وإغلاق البلاغ..." required
+                                   class="flex-grow text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-700 transition flex items-center gap-1 shrink-0">
+                                <i class="fa-solid fa-paper-plane ml-1"></i>إرسال الرد وإغلاق
+                            </button>
+                        </form>
                     </div>
                 </li>
                 {% endfor %}
@@ -275,7 +324,7 @@
         <!-- System Transactions -->
         <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
             <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">سجل المعاملات المالية (المحاكاة)</h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">سجل المعاملات المالية</h3>
             </div>
             {% if recent_transactions %}
             <div class="overflow-x-auto">
@@ -292,7 +341,12 @@
                         {% for tx in recent_transactions %}
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-3 whitespace-nowrap text-xs text-gray-900">
-                                <a href="{{ url_for('auth.view_profile', user_id=tx.user_id) }}" class="hover:underline text-primary-600">{{ tx.user.username }}</a>
+                                <a href="{{ url_for('auth.view_profile', user_id=tx.user_id) }}" class="hover:underline text-primary-600">
+                                    {{ tx.user.fullname or tx.user.username }}
+                                    {% if tx.user.fullname %}
+                                    <span class="text-[10px] text-gray-400 font-normal">(@{{ tx.user.username }})</span>
+                                    {% endif %}
+                                </a>
                             </td>
                             <td class="px-6 py-3 whitespace-nowrap text-xs font-bold {{ 'text-red-600' if tx.amount < 0 else 'text-green-600' }}">
                                 {{ "%.2f"|format(tx.amount) }} ج.م
