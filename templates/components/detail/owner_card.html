@@ -5,8 +5,8 @@
             <img src="{{ listing.owner.profile_image }}"
                 class="w-12 h-12 rounded-full border border-gray-100 hover:ring-2 hover:ring-primary-400 transition object-cover">
             {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ listing.owner.fullname or listing.owner.username }}&background=EBF5FF&color=2563EB"
-                class="w-12 h-12 rounded-full border border-gray-100 hover:ring-2 hover:ring-primary-400 transition">
+            <img src="{{ url_for('static', filename='img/default_avatar.svg') }}"
+                class="w-12 h-12 rounded-full border border-gray-100 hover:ring-2 hover:ring-primary-400 transition object-cover">
             {% endif %}
         </a>
         <div>

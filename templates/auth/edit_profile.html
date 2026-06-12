@@ -44,7 +44,7 @@
                         {% if current_user.profile_image %}
                             <img id="avatar-preview" src="{{ current_user.profile_image }}" alt="{{ current_user.username }}" class="w-full h-full object-cover rounded-full">
                         {% else %}
-                            <img id="avatar-preview" src="https://ui-avatars.com/api/?name={{ current_user.fullname or current_user.username }}&background=random&size=150" alt="{{ current_user.username }}" class="w-full h-full object-cover rounded-full">
+                            <img id="avatar-preview" src="{{ url_for('static', filename='img/default_avatar.svg') }}" alt="{{ current_user.username }}" class="w-full h-full object-cover rounded-full">
                         {% endif %}
                         
                         {% if current_user.role == 'admin' %}

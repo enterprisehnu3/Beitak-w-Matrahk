@@ -68,7 +68,7 @@
                         {% if current_user.profile_image %}
                             <img src="{{ current_user.profile_image }}" class="w-8 h-8 rounded-full object-cover border border-gray-100">
                         {% else %}
-                            <img src="https://ui-avatars.com/api/?name={{ current_user.fullname or current_user.username }}&background=random" class="w-8 h-8 rounded-full">
+                            <img src="{{ url_for('static', filename='img/default_avatar.svg') }}" class="w-8 h-8 rounded-full">
                         {% endif %}
                         {{ current_user.fullname or current_user.username }}
                     </a>
