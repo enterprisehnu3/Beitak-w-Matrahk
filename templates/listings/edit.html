@@ -13,6 +13,20 @@
         action="{{ url_for('listings.edit', id=listing.id) }}" method="POST" enctype="multipart/form-data">
         <div class="space-y-8 divide-y divide-gray-200">
 
+            <!-- Toggle Activation Status -->
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 flex items-start gap-3">
+                <div class="flex items-center h-5">
+                    <input id="is_active" name="is_active" type="checkbox" {% if listing.is_active %}checked{% endif %}
+                        class="focus:ring-primary-500 h-5 w-5 text-primary-600 border-gray-300 rounded cursor-pointer">
+                </div>
+                <div class="text-sm">
+                    <label for="is_active" class="font-bold text-gray-800 cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-eye text-primary-600"></i> تفعيل الإعلان (نشط ومرئي للجميع)
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1">إذا قمت بإلغاء التحديد، سيتم إخفاء هذا الإعلان عن جميع المستأجرين ولن يظهر في نتائج البحث حتى تعيد تفعيله.</p>
+                </div>
+            </div>
+
             <!-- Basic Info & Location -->
             <div class="pt-2">
                 <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">

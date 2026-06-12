@@ -61,10 +61,9 @@
                             booking.listing.area }}</p>
                     </div>
                     <div class="col-span-3 text-center">
-                        <p class="text-sm text-gray-600">من: {{ booking.booking_date.strftime('%d-%m-%Y') if
-                            booking.booking_date else 'N/A' }}</p>
-                        <p class="text-sm text-gray-600 mt-1">إلى: {{ end_date.strftime('%d-%m-%Y') if end_date else
-                            'N/A' }}</p>
+                        <p class="text-sm text-gray-600 font-bold">من: {{ booking.check_in_date.strftime('%Y-%m-%d') if booking.check_in_date else 'N/A' }}</p>
+                        <p class="text-sm text-gray-600 font-bold mt-1">إلى: {{ booking.check_out_date.strftime('%Y-%m-%d') if booking.check_out_date else 'N/A' }}</p>
+                        <p class="text-xs text-gray-400 mt-1">وصول: {{ booking.arrival_time or '-' }}</p>
                     </div>
                     <div class="col-span-3 text-left">
                         <p class="font-bold text-gray-900">{{ booking.total_price }} ج.م</p>

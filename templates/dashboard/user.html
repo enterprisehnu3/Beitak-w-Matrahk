@@ -6,10 +6,6 @@
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold text-gray-900">لوحة تحكم المستخدم</h1>
         <div class="flex items-center gap-4">
-            <div class="bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100 text-center">
-                <span class="block text-[10px] text-indigo-600 font-bold uppercase">رصيد المحفظة</span>
-                <span class="text-xl font-black text-indigo-700">{{ "%.2f"|format(current_user.wallet_balance) }} ج.م</span>
-            </div>
             <div class="bg-primary-50 px-4 py-2 rounded-lg border border-primary-100 text-center">
                 <span class="block text-[10px] text-primary-600 font-bold uppercase">الموثوقية</span>
                 <span class="text-xl font-black text-primary-700">{{ current_user.reliability_score }}/100</span>
@@ -44,31 +40,51 @@
                                     alt="">
                             </div>
                             <div class="mr-4">
-                                <p class="text-sm font-medium text-primary-600 truncate">{{ booking.listing.title }}</p>
-                                <p class="flex items-center text-sm text-gray-500">
+                                <p class="text-sm font-bold text-primary-600 truncate mb-1">{{ booking.listing.title }}</p>
+                                <p class="flex items-center text-xs text-gray-500 mb-1.5">
                                     <i class="fa-solid fa-location-dot ml-1.5 text-gray-400"></i>
-                                    {{ booking.listing.city|ar_city }}
+                                    {{ booking.listing.city|ar_city }} - {{ booking.listing.area }}
+                                </p>
+                                {% if booking.check_in_date and booking.check_out_date %}
+                                <p class="text-xs text-gray-600 mb-1 flex items-center gap-1.5">
+                                    <i class="fa-regular fa-calendar-days text-gray-400"></i>
+                                    من <strong>{{ booking.check_in_date.strftime('%Y-%m-%d') }}</strong> إلى <strong>{{ booking.check_out_date.strftime('%Y-%m-%d') }}</strong> 
+                                    (المدة: <strong class="text-gray-900">{{ (booking.check_out_date - booking.check_in_date).days }} يوم</strong>)
+                                </p>
+                                {% endif %}
+                                <p class="text-xs text-gray-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-money-bill-wave text-gray-400"></i>
+                                    الإجمالي المستحق: <strong class="text-indigo-600 text-sm">{{ booking.total_price|round }} ج.م</strong>
                                 </p>
                             </div>
                         </div>
                         <div class="flex flex-col items-end gap-2">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {{ 'bg-green-100 text-green-800' if booking.status == 'confirmed' else 'bg-blue-100 text-blue-800' if booking.status == 'pending_payment' else 'bg-yellow-100 text-yellow-800' if booking.status == 'pending' else 'bg-red-100 text-red-800' }}">
-                                {{ 'مؤكد' if booking.status == 'confirmed' else 'بانتظار الدفع' if booking.status == 'pending_payment' else 'بانتظار الموافقة' if booking.status == 'pending' else 'ملغي/مرفوض' }}
+                            <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full 
+                                {{ 'bg-green-100 text-green-800' if booking.status == 'confirmed' 
+                                   else 'bg-blue-100 text-blue-800' if booking.status == 'pending_payment' 
+                                   else 'bg-yellow-100 text-yellow-800' if booking.status == 'pending_approval'
+                                   else 'bg-red-100 text-red-800' if booking.status == 'rejected'
+                                   else 'bg-gray-100 text-gray-800' }}">
+                                {{ 'مؤكد (معلق بالمنصة)' if booking.status == 'confirmed' 
+                                   else 'بانتظار دفعك' if booking.status == 'pending_payment' 
+                                   else 'بانتظار موافقة المالك' if booking.status == 'pending_approval'
+                                   else 'مرفوض' if booking.status == 'rejected'
+                                   else 'ملغي' if booking.status == 'cancelled'
+                                   else booking.status }}
                             </span>
                             <p class="text-[10px] text-gray-400">
-                                {{ booking.booking_date.strftime('%Y-%m-%d') }}
+                                تم الطلب في: {{ booking.booking_date.strftime('%Y-%m-%d') }}
                             </p>
                             <div class="flex gap-2">
                                 {% if booking.status == 'pending_payment' %}
-                                <a href="{{ url_for('booking.payment', booking_id=booking.id) }}" class="bg-blue-600 text-white px-4 py-1 rounded-lg text-xs font-bold shadow-sm hover:bg-blue-700 transition">
-                                    <i class="fa-solid fa-credit-card ml-1"></i> إتمام الدفع
+                                <a href="{{ url_for('booking.payment', booking_id=booking.id) }}" class="bg-blue-600 text-white px-4 py-1 rounded-lg text-xs font-bold shadow-sm hover:bg-blue-700 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-credit-card"></i> إتمام الدفع الآن
                                 </a>
                                 {% endif %}
                                 
-                                {% if booking.status != 'cancelled' and booking.status != 'rejected' %}
-                                <form action="{{ url_for('booking.cancel', id=booking.id) }}" method="POST" onsubmit="return swalConfirm(this, 'هل أنت متأكد من الإلغاء؟', 'قد يتم تطبيق غرامة بناءً على سياسة الإلغاء.', 'warning')">
-                                    <button type="submit" class="text-red-500 hover:text-red-700 text-[10px] underline">إلغاء الحجز</button>
+                                {% if booking.status not in ['cancelled', 'rejected'] %}
+                                <form action="{{ url_for('booking.cancel', id=booking.id) }}" method="POST" onsubmit="return swalConfirm(this, 'هل أنت متأكد من الإلغاء؟', 'بالنسبة للحجوزات المؤكدة، يطبق النظام غرامة إلغاء ذكية في حال الإلغاء خلال الـ 72 ساعة السابقة للوصول.', 'warning')">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 text-xs underline">إلغاء الطلب</button>
                                 </form>
                                 {% endif %}
                             </div>

@@ -22,17 +22,31 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-gray-600">رسوم الحجز (مقدم الإيجار):</span>
-                        <span class="font-bold text-gray-900">{{ booking.listing.price }} ج.م</span>
+                    <div class="flex justify-between items-center mb-3 text-sm">
+                        <span class="text-gray-600">تاريخ الدخول:</span>
+                        <span class="font-bold text-gray-900">{{ booking.check_in_date.strftime('%Y-%m-%d') if booking.check_in_date else '-' }}</span>
                     </div>
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-gray-600">رسوم الخدمة:</span>
-                        <span class="font-bold text-gray-900">0 ج.م</span>
+                    <div class="flex justify-between items-center mb-3 text-sm">
+                        <span class="text-gray-600">تاريخ الخروج:</span>
+                        <span class="font-bold text-gray-900">{{ booking.check_out_date.strftime('%Y-%m-%d') if booking.check_out_date else '-' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-3 text-sm">
+                        <span class="text-gray-600">وقت الوصول المتوقع:</span>
+                        <span class="font-bold text-gray-900">{{ booking.arrival_time or '-' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-3 text-sm">
+                        <span class="text-gray-600">المدة الإجمالية:</span>
+                        <span class="font-bold text-gray-900">
+                            {% if booking.check_in_date and booking.check_out_date %}
+                                {{ (booking.check_out_date - booking.check_in_date).days }} يوم
+                            {% else %}
+                                -
+                            {% endif %}
+                        </span>
                     </div>
                     <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-                        <span class="text-lg font-bold text-gray-900">الإجمالي:</span>
-                        <span class="font-bold text-primary-600 text-2xl">{{ booking.listing.price }} ج.م</span>
+                        <span class="text-lg font-bold text-gray-900">الإجمالي المستحق:</span>
+                        <span class="font-bold text-primary-600 text-2xl">{{ booking.total_price|round }} ج.م</span>
                     </div>
                 </div>
 
@@ -61,14 +75,14 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">الرقم السري (CVV)</label>
-                                <input type="password" required pattern="\d{3,4}" maxlength="4" class="w-full border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-center" placeholder="123" dir="ltr">
+                                <input type="password" id="cvv-input" required pattern="\d{3}" maxlength="3" class="w-full border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-center" placeholder="123" dir="ltr">
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-8">
                         <button type="submit" class="w-full bg-primary-600 text-white py-4 px-4 rounded-xl font-bold hover:bg-primary-700 transition shadow-lg shadow-primary-500/30 text-lg flex justify-center items-center gap-3">
-                            <i class="fa-solid fa-lock"></i> دفع وتأكيد الحجز ({{ booking.listing.price }} ج.م)
+                            <i class="fa-solid fa-lock"></i> دفع وتأكيد الحجز ({{ booking.total_price|round }} ج.م)
                         </button>
                     </div>
                     
@@ -110,6 +124,12 @@
             value = value.substring(0, 2) + '/' + value.substring(2, 4);
         }
         e.target.value = value;
+    });
+
+    // Force numbers only and max 3 digits on CVV input
+    const cvvInput = document.getElementById('cvv-input');
+    cvvInput.addEventListener('input', function (e) {
+        e.target.value = e.target.value.replace(/\D/g, '').substring(0, 3);
     });
 </script>
 {% endblock %}

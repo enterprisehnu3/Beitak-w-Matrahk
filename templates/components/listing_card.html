@@ -38,8 +38,13 @@
             listing.area }}</p>
 
         <div class="mt-4 flex items-center justify-between text-sm text-gray-500 border-t pt-3">
-            <span class="flex items-center"><i class="fa-solid fa-bed ml-1"></i> {{
-                listing.available_places }} متبقي</span>
+            <span class="flex items-center">
+                {% if listing.type == 'bed' %}
+                <i class="fa-solid fa-bed ml-1"></i> {{ listing.available_places }} متبقي
+                {% else %}
+                <i class="fa-solid fa-door-open ml-1"></i> غرفة كاملة
+                {% endif %}
+            </span>
             <span class="flex items-center"><i class="fa-solid fa-venus-mars ml-1"></i> {{
                 listing.gender_req|ar_gender }}</span>
         </div>

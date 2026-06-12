@@ -30,6 +30,9 @@
                 <div>
                     <p class="text-sm font-bold text-gray-400">إجمالي الإيرادات</p>
                     <h3 class="text-2xl font-black text-gray-800 mt-1">{{ stats.total_revenue }} ج.م</h3>
+                    <button onclick="openAdminWithdrawModal({{ stats.total_revenue }})" class="mt-2 text-[10px] bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-2.5 rounded-lg transition-colors flex items-center gap-1 shadow-sm">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> سحب الأرباح
+                    </button>
                 </div>
                 <div class="bg-green-50 p-3 rounded-lg text-green-600">
                     <i class="fa-solid fa-wallet text-xl"></i>
@@ -83,51 +86,6 @@
         </div>
     </div>
 
-    <!-- Listings Pending Approval -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">إعلانات بانتظار الموافقة</h3>
-        </div>
-        {% if pending_listings %}
-        <ul class="divide-y divide-gray-200">
-            {% for listing in pending_listings %}
-            <li class="px-4 py-4 sm:px-6 flex items-center justify-between">
-                <div class="flex items-center">
-                    {% set fallback_img = url_for('static', filename='img/room.jpg') %}
-                    <img class="h-12 w-12 rounded-lg object-cover ml-4"
-                        src="{{ listing.images[0].image_path if listing.images else fallback_img }}"
-                        onerror="this.src='{{ fallback_img }}'">
-                    <div>
-                        <p class="text-sm font-medium text-primary-600 truncate">{{ listing.title }}</p>
-                        <p class="text-sm text-gray-500">مالك: <a href="{{ url_for('auth.view_profile', user_id=listing.owner_id) }}" class="hover:underline">{{ listing.owner.username }}</a> | {{
-                            listing.created_at.strftime('%Y-%m-%d') }}</p>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <a href="{{ url_for('listings.detail', id=listing.id) }}"
-                        class="text-gray-600 hover:text-gray-900 text-sm font-medium px-3 py-1 border rounded hover:bg-gray-50">عرض
-                        التفاصيل</a>
-                    <form action="{{ url_for('admin.approve_listing', id=listing.id) }}" method="POST">
-                        <button type="submit"
-                            class="text-green-600 hover:text-green-900 text-sm font-medium px-3 py-1 border border-green-200 rounded hover:bg-green-50">موافق</button>
-                    </form>
-                    <form action="{{ url_for('listings.delete', id=listing.id) }}" method="POST"
-                        onsubmit="return swalConfirm(this, 'حذف المستخدم؟', 'سيتم مسح كافة البيانات بشكل نهائي.', 'error');">
-                        <button type="submit"
-                            class="text-red-600 hover:text-red-900 text-sm font-medium px-3 py-1 border border-red-200 rounded hover:bg-red-50">رفض
-                            وحذف</button>
-                    </form>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <div class="p-8 text-center text-gray-500">
-            لا توجد إعلانات معلقة حالياً.
-        </div>
-        {% endif %}
-    </div>
-
     <!-- Recent Bookings -->
     <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
         <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
@@ -138,41 +96,97 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">رقم الحجز</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المستأجر</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المالك</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الغرفة</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">رقم الحجز</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">المستأجر</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">المالك</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">الغرفة والسعر</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">الفترة والوصول</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">الحالة وتحرير الدفعة</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for booking in recent_bookings %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ booking.id }}</td>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">#{{ booking.id }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            <a href="{{ url_for('auth.view_profile', user_id=booking.tenant_id) }}" class="hover:underline text-primary-600">
+                            <a href="{{ url_for('auth.view_profile', user_id=booking.tenant_id) }}" class="hover:underline text-primary-600 font-bold">
                                 {{ booking.tenant.fullname or booking.tenant.username }}
                                 {% if booking.tenant.fullname %}
-                                <span class="text-xs text-gray-400 font-normal">(@{{ booking.tenant.username }})</span>
+                                <span class="block text-[10px] text-gray-400 font-normal">(@{{ booking.tenant.username }})</span>
                                 {% endif %}
                             </a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <a href="{{ url_for('auth.view_profile', user_id=booking.listing.owner_id) }}" class="hover:underline">
+                            <a href="{{ url_for('auth.view_profile', user_id=booking.listing.owner_id) }}" class="hover:underline font-bold">
                                 {{ booking.listing.owner.fullname or booking.listing.owner.username }}
                                 {% if booking.listing.owner.fullname %}
-                                <span class="text-xs text-gray-400 font-normal">(@{{ booking.listing.owner.username }})</span>
+                                <span class="block text-[10px] text-gray-400 font-normal">(@{{ booking.listing.owner.username }})</span>
                                 {% endif %}
                             </a>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs">{{
-                            booking.listing.title }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <p class="font-bold text-gray-900 truncate max-w-xs">{{ booking.listing.title }}</p>
+                            <p class="text-xs text-indigo-600 font-extrabold mt-0.5">الإجمالي: {{ booking.total_price|round }} ج.م</p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if booking.check_in_date and booking.check_out_date %}
+                            <div>
+                                <span class="block text-xs text-gray-800 font-bold">دخول: {{ booking.check_in_date.strftime('%Y-%m-%d') }}</span>
+                                <span class="block text-xs text-gray-800 font-bold mt-0.5">خروج: {{ booking.check_out_date.strftime('%Y-%m-%d') }}</span>
+                                <span class="block text-[10px] text-gray-500 mt-0.5">المدة: {{ (booking.check_out_date - booking.check_in_date).days }} يوم | وصول: {{ booking.arrival_time or '-' }}</span>
+                            </div>
+                            {% else %}
+                            {{ booking.booking_date.strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span
-                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {{ 'bg-green-100 text-green-800' if booking.status == 'confirmed' else 'bg-yellow-100 text-yellow-800' if booking.status == 'pending' else 'bg-red-100 text-red-800' }}">
-                                {{ booking.status }}
-                            </span>
+                            <div class="flex flex-col gap-1 items-start">
+                                <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full 
+                                    {{ 'bg-green-100 text-green-800' if booking.status == 'confirmed' 
+                                       else 'bg-blue-100 text-blue-800' if booking.status == 'pending_payment' 
+                                       else 'bg-yellow-100 text-yellow-800' if booking.status == 'pending_approval'
+                                       else 'bg-red-100 text-red-800' if booking.status == 'rejected'
+                                       else 'bg-gray-100 text-gray-800' }}">
+                                    {{ 'مؤكد' if booking.status == 'confirmed' 
+                                       else 'بانتظار الدفع' if booking.status == 'pending_payment' 
+                                       else 'بانتظار الموافقة' if booking.status == 'pending_approval'
+                                       else 'مرفوض' if booking.status == 'rejected'
+                                       else 'ملغي' if booking.status == 'cancelled'
+                                       else booking.status }}
+                                </span>
+                                {% if booking.status == 'confirmed' %}
+                                    {% if booking.payment_released %}
+                                    <span class="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100 flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check"></i> تم تحرير الدفعة للمالك
+                                    </span>
+                                    {% else %}
+                                    <span class="text-[9px] font-bold text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded border border-yellow-100 flex items-center gap-1 animate-pulse">
+                                        <i class="fa-solid fa-clock"></i> معلقة بالمنصة (Escrow)
+                                    </span>
+                                    <form action="{{ url_for('admin.release_payout', booking_id=booking.id) }}" method="POST" class="mt-1.5 w-full">
+                                        <button type="submit" onclick="return swalConfirm(this, 'تحرير وتحويل الأموال للمالك', 'هل أنت متأكد من تحويل مستحقات المالك وتحرير الأموال من المنصة؟', 'question')" class="w-full bg-green-600 hover:bg-green-700 text-white text-[9px] font-bold py-1 px-1.5 rounded-lg transition-colors flex items-center justify-center gap-1 shadow-sm">
+                                            <i class="fa-solid fa-money-bill-transfer"></i> تحرير وتحويل الأموال للمالك
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                {% endif %}
+                                
+                                {% if booking.payout_method %}
+                                <div class="mt-1 text-[9px] font-bold text-gray-700 bg-gray-50 px-2 py-1 rounded-lg border border-gray-150 flex flex-col gap-0.5 text-right w-full">
+                                    <span class="text-gray-400">طريقة سحب المالك:</span>
+                                    <span class="text-primary-700 text-[10px]">
+                                        {% if booking.payout_method == 'vodafone_cash' %}
+                                        <i class="fa-solid fa-mobile-screen-button text-red-500 ml-1"></i>محفظة إلكترونية
+                                        {% elif booking.payout_method == 'instapay' %}
+                                        <i class="fa-solid fa-bolt-lightning text-green-500 ml-1"></i>انستا باي
+                                        {% elif booking.payout_method == 'visa' %}
+                                        <i class="fa-solid fa-credit-card text-blue-500 ml-1"></i>فيزا / بنك
+                                        {% endif %}
+                                    </span>
+                                    <span class="text-[9px] text-gray-600 select-all font-mono bg-white px-1 py-0.5 rounded border border-gray-100 mt-0.5">{{ booking.payout_details }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -447,5 +461,83 @@
             options: { responsive: true, plugins: { legend: { display: false } } }
         });
     });
+</script>
+
+<script>
+function openAdminWithdrawModal(availableAmount) {
+    if (availableAmount <= 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'رصيد غير كافٍ',
+            text: 'لا توجد أرباح متاحة للسحب حالياً.',
+            confirmButtonText: 'حسناً',
+            confirmButtonColor: '#4f46e5'
+        });
+        return;
+    }
+    
+    Swal.fire({
+        title: 'سحب الأرباح من المنصة',
+        html: `
+            <div class="text-right mb-4">
+                <p class="text-sm font-bold text-gray-500 mb-1">الرصيد المتاح:</p>
+                <p class="text-lg font-black text-indigo-600">${availableAmount.toFixed(2)} ج.م</p>
+            </div>
+            <form id="admin-withdraw-form" action="/admin/withdraw_profits" method="POST" class="space-y-4 text-right">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">مبلغ السحب (ج.م)</label>
+                    <input type="number" id="withdraw-amount" name="amount" min="1" max="${availableAmount}" step="0.01" required 
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                        placeholder="أدخل المبلغ">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">طريقة السحب</label>
+                    <select id="withdraw-method" name="method" required 
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="Vodafone Cash">محفظة إلكترونية (كاش)</option>
+                        <option value="InstaPay">إنستا باي (InstaPay)</option>
+                        <option value="Visa / Bank Account">فيزا / حساب بنكي</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">تفاصيل الحساب / الهاتف</label>
+                    <input type="text" id="withdraw-details" name="details" required 
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                        placeholder="رقم الهاتف أو عنوان الدفع أو الآيبان">
+                </div>
+            </form>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'تأكيد السحب',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#22c55e',
+        cancelButtonColor: '#ef4444',
+        preConfirm: () => {
+            const amountInput = document.getElementById('withdraw-amount');
+            const methodSelect = document.getElementById('withdraw-method');
+            const detailsInput = document.getElementById('withdraw-details');
+            
+            const amount = parseFloat(amountInput.value);
+            const method = methodSelect.value;
+            const details = detailsInput.value.trim();
+            
+            if (isNaN(amount) || amount <= 0 || amount > availableAmount) {
+                Swal.showValidationMessage('يرجى إدخال مبلغ سحب صحيح ومتاح.');
+                return false;
+            }
+            if (!method || !details) {
+                Swal.showValidationMessage('يرجى ملء جميع الحقول.');
+                return false;
+            }
+            
+            return { amount, method, details };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('admin-withdraw-form');
+            form.submit();
+        }
+    });
+}
 </script>
 {% endblock %}

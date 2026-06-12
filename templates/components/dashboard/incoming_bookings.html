@@ -43,50 +43,68 @@
                             </div>
                             <div class="mr-4">
                                 <div class="text-sm font-medium text-gray-900">
-                                    <a href="{{ url_for('auth.view_profile', user_id=booking.tenant.id) }}" class="hover:text-primary-600 transition">
+                                    <a href="{{ url_for('auth.view_profile', user_id=booking.tenant.id) }}" class="hover:text-primary-600 transition font-bold">
                                         {{ booking.tenant.fullname or booking.tenant.username }}
                                     </a>
                                 </div>
-                                <div class="text-sm text-gray-500">{{ 'مستأجر' if booking.tenant.role == 'student' else 'موظف' if booking.tenant.role == 'employee' else booking.tenant.role }}</div>
+                                <div class="text-xs text-gray-500 mb-1">{{ 'مستأجر' if booking.tenant.role == 'student' else 'موظف' if booking.tenant.role == 'employee' else booking.tenant.role }}</div>
+                                <div class="text-[10px] text-gray-500">
+                                    الموثوقية: <span class="font-extrabold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">{{ booking.tenant.reliability_score }}/100</span>
+                                </div>
                             </div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ booking.listing.title }}
+                        <p class="font-bold text-gray-900">{{ booking.listing.title }}</p>
+                        <p class="text-xs text-indigo-600 font-semibold mt-0.5">القيمة المقدرة: {{ booking.total_price|round }} ج.م</p>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {% if booking.check_in_date and booking.check_out_date %}
+                        <div>
+                            <span class="block text-xs font-bold text-gray-800">من: {{ booking.check_in_date.strftime('%Y-%m-%d') }}</span>
+                            <span class="block text-xs font-bold text-gray-800 mt-0.5">إلى: {{ booking.check_out_date.strftime('%Y-%m-%d') }}</span>
+                            <span class="block text-[10px] text-gray-500 mt-0.5">المدة: {{ (booking.check_out_date - booking.check_in_date).days }} يوم</span>
+                            <span class="block text-[10px] text-gray-400 mt-0.5">وصول: {{ booking.arrival_time or '-' }}</span>
+                        </div>
+                        {% else %}
                         {{ booking.booking_date.strftime('%Y-%m-%d') }}
+                        {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        {% if booking.status == 'pending' %}
+                        {% if booking.status == 'pending_approval' %}
                         <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            تم الدفع / بانتظار موافقتك
+                            class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-yellow-100 text-yellow-800 animate-pulse">
+                            بانتظار موافقتك
                         </span>
                         {% elif booking.status == 'pending_payment' %}
                         <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            المستأجر لم يدفع بعد
+                            class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-50 text-blue-700">
+                            بانتظار دفع المستأجر
                         </span>
                         {% elif booking.status == 'confirmed' %}
                         <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            مؤكد
+                            class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800">
+                            مؤكد (معلق بالمنصة)
                         </span>
                         {% elif booking.status == 'cancelled' %}
                         <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                            class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-800">
                             ملغي
                         </span>
                         {% elif booking.status == 'rejected' %}
                         <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800">
                             مرفوض
+                        </span>
+                        {% else %}
+                        <span
+                            class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-600">
+                            {{ booking.status }}
                         </span>
                         {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                        {% if booking.status == 'pending' %}
+                        {% if booking.status == 'pending_approval' %}
                         <div class="flex justify-end gap-2">
                             <form action="{{ url_for('booking.approve', id=booking.id) }}" method="POST">
                                 <button type="submit"
@@ -99,8 +117,12 @@
                             </form>
                         </div>
                         {% elif booking.status == 'confirmed' %}
-                        <form action="{{ url_for('booking.cancel', id=booking.id) }}" method="POST" onsubmit="return swalConfirm(this, 'تأكيد الإلغاء؟', 'سيتم خصم نقاط من موثوقيتك وقد تطبق غرامة.', 'warning')">
+                        <form action="{{ url_for('booking.cancel', id=booking.id) }}" method="POST" onsubmit="return swalConfirm(this, 'تأكيد الإلغاء؟', 'سيتم خصم 15 نقطة من موثوقيتك وإرجاع كامل المبلغ للمستأجر.', 'warning')">
                             <button type="submit" class="text-red-500 hover:text-red-700 text-xs underline">إلغاء حجز مؤكد</button>
+                        </form>
+                        {% elif booking.status == 'pending_payment' %}
+                        <form action="{{ url_for('booking.reject', id=booking.id) }}" method="POST" onsubmit="return swalConfirm(this, 'تأكيد إلغاء الحجز؟', 'سيتم رفض الطلب وإلغاء صلاحية دفع المستأجر.', 'warning')">
+                            <button type="submit" class="text-red-500 hover:text-red-700 text-xs underline">إلغاء الموافقة والطلب</button>
                         </form>
                         {% else %}
                         <span class="text-gray-400 text-xs">تم الإجراء</span>

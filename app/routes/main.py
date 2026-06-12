@@ -16,7 +16,16 @@ def service_worker():
 @main_bp.route('/')
 def index():
     # Show featured listings or latest
-    recent_listings = Listing.query.filter_by(is_active=True).order_by(Listing.created_at.desc()).limit(6).all()
+    from app.models import User
+    from datetime import datetime
+    from sqlalchemy import or_
+    recent_listings = Listing.query.join(User, Listing.owner_id == User.id).filter(
+        Listing.is_active == True,
+        or_(
+            User.banned_until == None,
+            User.banned_until <= datetime.utcnow()
+        )
+    ).order_by(Listing.created_at.desc()).limit(6).all()
     user_favorites = []
     if current_user.is_authenticated:
         from app.models import Favorite

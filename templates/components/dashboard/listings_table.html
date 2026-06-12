@@ -52,7 +52,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span
                                 class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ 'bg-green-100 text-green-800' if listing.is_active else 'bg-yellow-100 text-yellow-800' }}">
-                                {{ 'نشط' if listing.is_active else 'بانتظار الموافقة' }}
+                                {{ 'نشط (مرئي)' if listing.is_active else 'غير نشط (مخفي)' }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -75,11 +75,20 @@
                         <td
                             class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium flex items-center justify-end gap-2">
                             <a href="{{ url_for('listings.edit', id=listing.id) }}"
-                                class="text-primary-600 hover:text-primary-900">تعديل</a>
+                                class="text-primary-600 hover:text-primary-900 font-bold">تعديل</a>
+                            
+                            <form action="{{ url_for('listings.toggle_active', id=listing.id) }}" method="POST" class="inline"
+                                onsubmit="return swalConfirm(this, '{{ 'إخفاء الإعلان؟' if listing.is_active else 'تفعيل الإعلان؟' }}', '{{ 'سيتم إخفاء هذا الإعلان عن المستأجرين ولن يظهر في نتائج البحث.' if listing.is_active else 'سيتم إظهار الإعلان مجدداً للمستأجرين في نتائج البحث.' }}', 'question');">
+                                <button type="submit"
+                                    class="{{ 'text-yellow-600 hover:text-yellow-900' if listing.is_active else 'text-green-600 hover:text-green-900' }} bg-transparent border-0 cursor-pointer font-bold">
+                                    {{ 'إخفاء' if listing.is_active else 'تفعيل' }}
+                                </button>
+                            </form>
+
                             <form action="{{ url_for('listings.delete', id=listing.id) }}" method="POST"
                                 onsubmit="return swalConfirm(this, 'حذف الإعلان؟', 'لا يمكن التراجع عن هذه الخطوة.', 'error');">
                                 <button type="submit"
-                                    class="text-red-600 hover:text-red-900 bg-transparent border-0 cursor-pointer">حذف</button>
+                                    class="text-red-600 hover:text-red-900 bg-transparent border-0 cursor-pointer font-bold">حذف</button>
                             </form>
                         </td>
                     </tr>

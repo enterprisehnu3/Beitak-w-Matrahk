@@ -8,31 +8,238 @@
     </div>
     {% elif current_user.role == 'student' %}
         {% if current_user.is_verified %}
-        <form action="{{ url_for('booking.book_listing', id=listing.id) }}" method="POST">
-            <button type="submit"
-                class="w-full bg-primary-600 text-white py-3 rounded-lg font-bold hover:bg-primary-700 transition shadow-lg shadow-primary-500/40 mb-3 block text-center"
-                onclick="return swalConfirm(this.form, 'تأكيد الحجز؟', 'سيتم إرسال طلبك للمالك للموافقة بعد الدفع.', 'question')">
+            {% set user_active_booking = current_user.bookings | selectattr("listing_id", "equalto", listing.id) | selectattr("status", "in", ["pending", "pending_approval", "pending_payment", "confirmed"]) | list %}
+            {% if user_active_booking %}
+            <div class="text-center p-4 bg-indigo-50 rounded border border-indigo-200 text-indigo-800 text-sm mb-3 text-right" dir="rtl">
+                <i class="fa-solid fa-circle-info text-indigo-600 block mb-2 text-lg text-center"></i>
+                {% if user_active_booking[0].status == 'confirmed' %}
+                لقد قمت بحجز هذه الوحدة بنجاح وحجزك مؤكد حالياً.
+                {% elif user_active_booking[0].status in ['pending', 'pending_approval'] %}
+                لديك طلب حجز قيد الانتظار بالفعل لهذه الوحدة السكنية.
+                {% elif user_active_booking[0].status == 'pending_payment' %}
+                لديك طلب حجز بانتظار الدفع بالفعل لهذه الوحدة السكنية.
+                {% else %}
+                لديك طلب حجز بالفعل لهذه الوحدة السكنية.
+                {% endif %}
+                <a href="{{ url_for('dashboard.index') }}" class="block mt-3 text-xs font-bold text-indigo-600 underline text-center">انتقل إلى لوحة التحكم بمستنداتك</a>
+            </div>
+            {% elif listing.available_places <= 0 %}
+            <div class="text-center p-4 bg-red-50 rounded border border-red-200 text-red-800 text-sm mb-3 text-right" dir="rtl">
+                <i class="fa-solid fa-ban text-red-600 block mb-2 text-lg text-center"></i>
+                عذراً، هذه الوحدة السكنية محجوزة بالكامل حالياً ولا توجد أماكن شاغرة للحجز.
+            </div>
+            {% else %}
+            <form action="{{ url_for('booking.book_listing', id=listing.id) }}" method="POST" id="booking-form" class="space-y-4 mb-3">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1 text-right">تاريخ الدخول <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <input type="date" id="check_in_date" name="check_in_date" required
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-right text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1 text-right">تاريخ الخروج <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <input type="date" id="check_out_date" name="check_out_date" required
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-right text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1 text-right">وقت الوصول المتوقع للشقة <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <input type="time" id="arrival_time" name="arrival_time" required
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-right text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all">
+                </div>
+            </div>
+
+            <!-- تفاصيل حساب السعر تفاعلياً -->
+            <div id="price-calculation" class="hidden bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-2.5 text-right transition-all">
+                <div class="flex justify-between items-center text-sm text-gray-600">
+                    <span id="calculated-duration-val" class="font-bold text-gray-900">0 يوم</span>
+                    <span>المدة الإجمالية:</span>
+                </div>
+                <div class="flex justify-between items-center text-sm text-gray-600">
+                    <span id="calculated-daily-val" class="font-bold text-gray-900">0 ج.م</span>
+                    <span>سعر اليوم المحتسب:</span>
+                </div>
+                <div class="border-t border-gray-200 my-2 pt-2 flex justify-between items-center text-base font-extrabold text-primary-600">
+                    <span id="calculated-total-val" class="text-lg">0 ج.م</span>
+                    <span>السعر الإجمالي:</span>
+                </div>
+            </div>
+            
+            <div id="booking-error-msg" class="hidden text-red-600 text-xs font-bold text-right bg-red-50 p-3 rounded-lg border border-red-100">
+            </div>
+
+            <button type="submit" id="submit-booking-btn"
+                class="w-full bg-primary-600 text-white py-3 rounded-lg font-bold hover:bg-primary-700 transition shadow-lg shadow-primary-500/40 block text-center">
                 طلب حجز الآن
             </button>
         </form>
+        {% endif %}
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const checkInInput = document.getElementById('check_in_date');
+                const checkOutInput = document.getElementById('check_out_date');
+                const arrivalInput = document.getElementById('arrival_time');
+                const priceCalcContainer = document.getElementById('price-calculation');
+                const durationVal = document.getElementById('calculated-duration-val');
+                const dailyVal = document.getElementById('calculated-daily-val');
+                const totalVal = document.getElementById('calculated-total-val');
+                const errorMsg = document.getElementById('booking-error-msg');
+                const submitBtn = document.getElementById('submit-booking-btn');
+                const bookingForm = document.getElementById('booking-form');
+
+                if (!bookingForm) return;
+
+                // تعيين الحد الأدنى لتاريخ اليوم
+                const today = new Date().toISOString().split('T')[0];
+                checkInInput.min = today;
+                
+                function calculatePrice() {
+                    const checkInStr = checkInInput.value;
+                    const checkOutStr = checkOutInput.value;
+                    
+                    if (!checkInStr || !checkOutStr) {
+                        priceCalcContainer.classList.add('hidden');
+                        errorMsg.classList.add('hidden');
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        return;
+                    }
+
+                    const checkIn = new Date(checkInStr);
+                    const checkOut = new Date(checkOutStr);
+                    
+                    const todayDate = new Date();
+                    todayDate.setHours(0, 0, 0, 0);
+
+                    const checkInDateObj = new Date(checkInStr);
+                    checkInDateObj.setHours(0, 0, 0, 0);
+
+                    if (checkInDateObj < todayDate) {
+                        errorMsg.textContent = "يجب ألا يكون تاريخ الدخول في الماضي.";
+                        errorMsg.classList.remove('hidden');
+                        priceCalcContainer.classList.add('hidden');
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        return;
+                    }
+
+                    // حساب الفرق بالأيام
+                    const diffTime = checkOut - checkIn;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays <= 0) {
+                        errorMsg.textContent = "يجب أن يكون تاريخ الخروج بعد تاريخ الدخول.";
+                        errorMsg.classList.remove('hidden');
+                        priceCalcContainer.classList.add('hidden');
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        return;
+                    }
+
+                    const basePrice = parseFloat("{{ listing.price }}");
+                    const rentalPeriod = "{{ listing.rental_period }}";
+                    let minDays = 7;
+                    let periodText = "أسبوع";
+                    
+                    if (rentalPeriod === 'monthly') {
+                        minDays = 30;
+                        periodText = "شهر (30 يوماً)";
+                    }
+
+                    if (diffDays < minDays) {
+                        errorMsg.textContent = `الحد الأدنى لحجز هذه الوحدة هو ${periodText}. لقد اخترت ${diffDays} يوم/أيام.`;
+                        errorMsg.classList.remove('hidden');
+                        priceCalcContainer.classList.add('hidden');
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        return;
+                    }
+
+                    // حساب سعر اليوم وتوتال السعر
+                    const dailyRate = rentalPeriod === 'monthly' ? basePrice / 30 : basePrice / 7;
+                    const totalPrice = diffDays * dailyRate;
+
+                    errorMsg.classList.add('hidden');
+                    priceCalcContainer.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                    durationVal.textContent = `${diffDays} يوم`;
+                    dailyVal.textContent = `${Math.round(dailyRate)} ج.م`;
+                    totalVal.textContent = `${Math.round(totalPrice)} ج.م`;
+                }
+
+                checkInInput.addEventListener('change', function() {
+                    checkOutInput.min = checkInInput.value;
+                    calculatePrice();
+                });
+                checkOutInput.addEventListener('change', calculatePrice);
+                
+                // منع الإرسال التلقائي وعمل SweetAlert
+                bookingForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (submitBtn.disabled) return;
+                    
+                    const checkInStr = checkInInput.value;
+                    const checkOutStr = checkOutInput.value;
+                    const arrivalStr = arrivalInput.value;
+                    
+                    Swal.fire({
+                        title: 'تأكيد طلب الحجز؟',
+                        text: `طلب حجز من تاريخ ${checkInStr} إلى ${checkOutStr}، والوصول المتوقع في تمام ${arrivalStr}. سيتم إرسال الطلب للمالك للموافقة.`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'تأكيد وإرسال',
+                        cancelButtonText: 'إلغاء',
+                        confirmButtonColor: '#0284c7',
+                        cancelButtonColor: '#6b7280',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            bookingForm.submit();
+                        }
+                    });
+                });
+
+                // تفعيل الفحص المبدئي
+                calculatePrice();
+            });
+        </script>
         {% else %}
         <div class="bg-yellow-50 text-yellow-800 p-4 rounded-lg border border-yellow-200 text-xs font-bold mb-3 text-center">
             <i class="fa-solid fa-lock ml-1"></i> يرجى رفع صورة البطاقة وتوثيق حسابك لتتمكن من الحجز.
         </div>
         {% endif %}
 
+    {% if (current_user.is_verified and listing.owner.is_verified) or current_user.role == 'admin' %}
     <a href="{{ url_for('chat.talk', user_id=listing.owner.id) }}"
         class="w-full bg-white text-primary-600 border border-primary-600 py-3 rounded-lg font-bold hover:bg-primary-50 transition mb-3 block text-center">
         <i class="fa-regular fa-comment-dots ml-2"></i>مراسلة المالك (محادثة داخلية)
     </a>
+    {% else %}
+    <button onclick="Swal.fire({title: 'غير متاح', text: 'لا يمكن مراسلة المالك إلا بعد توثيق حسابك وتوثيق حساب المالك.', icon: 'warning', confirmButtonText: 'حسناً', confirmButtonColor: '#0284c7'})"
+        class="w-full bg-gray-100 text-gray-400 border border-gray-200 py-3 rounded-lg font-bold cursor-not-allowed mb-3 block text-center">
+        <i class="fa-solid fa-lock ml-2"></i>مراسلة المالك (محادثة مغلقة)
+    </button>
+    {% endif %}
     {% elif current_user.role == 'homeowner' %}
     <div class="text-center p-4 bg-yellow-50 rounded border border-yellow-200 text-yellow-800 text-sm">
         عذراً، يجب تسجيل حساب "مستأجر" لتتمكن من الحجز. حساب المالك للعرض فقط.
     </div>
+    {% if (current_user.is_verified and listing.owner.is_verified) or current_user.role == 'admin' %}
     <a href="{{ url_for('chat.talk', user_id=listing.owner.id) }}"
         class="w-full bg-white text-primary-600 border border-primary-600 py-3 rounded-lg font-bold hover:bg-primary-50 transition mb-3 block text-center">
         <i class="fa-regular fa-comment-dots ml-2"></i>مراسلة المالك (محادثة داخلية)
     </a>
+    {% else %}
+    <button onclick="Swal.fire({title: 'غير متاح', text: 'لا يمكن مراسلة المالك إلا بعد توثيق حسابك وتوثيق حساب المالك.', icon: 'warning', confirmButtonText: 'حسناً', confirmButtonColor: '#0284c7'})"
+        class="w-full bg-gray-100 text-gray-400 border border-gray-200 py-3 rounded-lg font-bold cursor-not-allowed mb-3 block text-center">
+        <i class="fa-solid fa-lock ml-2"></i>مراسلة المالك (محادثة مغلقة)
+    </button>
+    {% endif %}
     {% elif current_user.role == 'admin' %}
     <div class="p-4 bg-red-50 rounded-xl border border-red-200 text-red-800 text-sm mb-3 shadow-inner">
         <p class="font-black mb-3 text-center text-red-900 border-b border-red-200 pb-2">

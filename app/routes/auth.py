@@ -42,6 +42,19 @@ def login():
                     latest_appeal=latest_appeal
                 )
 
+            # If ban has expired, clean up status and past appeals
+            if user.banned_until:
+                user.banned_until = None
+                user.ban_reason = None
+                from app.models import SupportTicket
+                appeals = SupportTicket.query.filter(
+                    SupportTicket.user_id == user.id,
+                    SupportTicket.subject.like('[التماس رفع حظر]%')
+                ).all()
+                for appeal in appeals:
+                    appeal.subject = appeal.subject.replace('[التماس رفع حظر]', '[التماس سابق تم معالجته]')
+                db.session.commit()
+
             login_user(user, remember=remember)
             
             next_page = request.args.get('next')
@@ -258,7 +271,10 @@ def view_profile(user_id):
         user_listings = Listing.query.filter_by(owner_id=user.id, is_active=True).all()
         owner_bookings_count = Booking.query.join(Listing).filter(Listing.owner_id == user.id, Booking.status.in_(['confirmed', 'completed'])).count()
         
-    return render_template('auth/profile.html', user=user, confirmed_tenant_bookings=confirmed_tenant_bookings, owner_bookings_count=owner_bookings_count, user_listings=user_listings)
+    now = datetime.utcnow()
+    is_banned = user.banned_until is not None and user.banned_until > now
+        
+    return render_template('auth/profile.html', user=user, confirmed_tenant_bookings=confirmed_tenant_bookings, owner_bookings_count=owner_bookings_count, user_listings=user_listings, is_banned=is_banned, now=now)
 
 @auth_bp.route('/edit_profile', methods=['GET', 'POST'])
 @login_required

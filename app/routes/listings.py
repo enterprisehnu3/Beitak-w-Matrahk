@@ -5,6 +5,7 @@ from app.services.upload import save_upload
 from sqlalchemy import or_
 from app.constants import CITY_TRANSLATIONS, GENDER_TRANSLATIONS, AMENITY_SYNONYMS
 import os
+from datetime import datetime
 
 listings_bp = Blueprint('listings', __name__)
 
@@ -18,7 +19,13 @@ def browse():
     gender = request.args.get('gender')
     listing_types = request.args.getlist('type')
     
-    query = Listing.query.filter_by(is_active=True)
+    query = Listing.query.join(User, Listing.owner_id == User.id).filter(
+        Listing.is_active == True,
+        or_(
+            User.banned_until == None,
+            User.banned_until <= datetime.utcnow()
+        )
+    )
     
     if city and city != "":
         query = query.filter(Listing.city == city)
@@ -114,6 +121,18 @@ def browse():
 @listings_bp.route('/listing/<int:id>')
 def detail(id):
     listing = Listing.query.get_or_404(id)
+    
+    # Check if owner is banned
+    if listing.owner.banned_until and listing.owner.banned_until > datetime.utcnow():
+        if not current_user.is_authenticated or (current_user.id != listing.owner_id and current_user.role != 'admin'):
+            flash('هذا الإعلان غير متاح حالياً بسبب تعليق حساب المؤجر.', 'warning')
+            return redirect(url_for('main.index'))
+
+    if not listing.is_active:
+        if not current_user.is_authenticated or (current_user.id != listing.owner_id and current_user.role != 'admin'):
+            flash('هذا الإعلان غير مفعّل حالياً بواسطة المؤجر.', 'warning')
+            return redirect(url_for('main.index'))
+
     compatibility = "N/A"
     is_favorited = False
     
@@ -170,7 +189,8 @@ def create():
             rental_period=rental_period,
             amenities=",".join(request.form.getlist('amenities')),
             latitude=request.form.get('latitude', type=float),
-            longitude=request.form.get('longitude', type=float)
+            longitude=request.form.get('longitude', type=float),
+            is_active=True
         )
         db.session.add(new_listing)
         db.session.flush() # To get listing.id
@@ -184,7 +204,7 @@ def create():
 
         try:
             db.session.commit()
-            flash('تم إضافة الإعلان بنجاح، بانتظار الموافقة', 'success')
+            flash('تم إضافة الإعلان ونشره بنجاح', 'success')
         except Exception as e:
             db.session.rollback()
             flash('حدث خطأ أثناء حفظ الإعلان، يرجى المحاولة مرة أخرى', 'danger')
@@ -241,6 +261,7 @@ def edit(id):
         listing.latitude = request.form.get('latitude', type=float)
         listing.longitude = request.form.get('longitude', type=float)
         listing.amenities = ",".join(request.form.getlist('amenities'))
+        listing.is_active = 'is_active' in request.form
         
         # Handle new image uploads
         if 'images' in request.files:
@@ -262,6 +283,21 @@ def edit(id):
         return redirect(url_for('dashboard.index'))
 
     return render_template('listings/edit.html', listing=listing)
+
+@listings_bp.route('/toggle_active/<int:id>', methods=['POST'])
+@login_required
+def toggle_active(id):
+    listing = Listing.query.get_or_404(id)
+    if listing.owner_id != current_user.id and current_user.role != 'admin':
+        flash('غير مصرح لك بتغيير حالة هذا الإعلان', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    listing.is_active = not listing.is_active
+    db.session.commit()
+    
+    status_str = 'تفعيل الإعلان بنجاح ونشره للجميع' if listing.is_active else 'تعطيل الإعلان بنجاح وإخفائه عن المستأجرين'
+    flash(status_str, 'success')
+    return redirect(url_for('dashboard.index'))
 
 @listings_bp.route('/delete_listing/<int:id>', methods=['POST'])
 @login_required

@@ -1,6 +1,9 @@
 from datetime import datetime
+# pyrefly: ignore [missing-import]
 from flask_sqlalchemy import SQLAlchemy
+# pyrefly: ignore [missing-import]
 from flask_login import UserMixin
+# pyrefly: ignore [missing-import]
 from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
@@ -61,7 +64,7 @@ class Listing(db.Model):
     # Details
     available_places = db.Column(db.Integer, default=1)
     gender_req = db.Column(db.String(10)) # 'male', 'female', 'any'
-    is_active = db.Column(db.Boolean, default=False) # Requires admin approval usually
+    is_active = db.Column(db.Boolean, default=True) # Published directly
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     rental_period = db.Column(db.String(20), default='monthly') # 'monthly' or 'weekly'
     
@@ -111,12 +114,20 @@ class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     listing_id = db.Column(db.Integer, db.ForeignKey('listings.id'), nullable=False)
     tenant_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    status = db.Column(db.String(20), default='pending') # pending, confirmed, rejected, completed, cancelled
+    status = db.Column(db.String(20), default='pending') # pending, pending_approval, pending_payment, confirmed, rejected, completed, cancelled
     booking_date = db.Column(db.DateTime, default=datetime.utcnow)
     check_in_date = db.Column(db.DateTime, nullable=True) # When the stay starts
+    check_out_date = db.Column(db.DateTime, nullable=True) # When the stay ends
+    arrival_time = db.Column(db.String(50), nullable=True) # Expected arrival time (e.g. 14:00)
     
     total_price = db.Column(db.Float, default=0.0)
     commission_fee = db.Column(db.Float, default=0.0)
+    
+    # Escrow Release fields
+    payment_released = db.Column(db.Boolean, default=False)
+    owner_payout_amount = db.Column(db.Float, default=0.0)
+    payout_method = db.Column(db.String(50), nullable=True) # visa, instapay, vodafone_cash
+    payout_details = db.Column(db.String(150), nullable=True) # Phone, instapay IPA, or IBAN/Visa number
     
     # Cancellation tracking
     cancelled_at = db.Column(db.DateTime, nullable=True)
@@ -125,11 +136,29 @@ class Booking(db.Model):
     
     notes = db.Column(db.Text)
 
+class Conversation(db.Model):
+    __tablename__ = 'conversations'
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    homeowner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    listing_id = db.Column(db.Integer, db.ForeignKey('listings.id'), nullable=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey('bookings.id'), nullable=True)
+    status = db.Column(db.String(20), default='open') # open, closed, blocked
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    tenant = db.relationship('User', foreign_keys=[tenant_id], backref='conversations_as_tenant')
+    homeowner = db.relationship('User', foreign_keys=[homeowner_id], backref='conversations_as_homeowner')
+    listing = db.relationship('Listing', backref='conversations', lazy=True)
+    booking = db.relationship('Booking', backref='conversations', lazy=True)
+    messages = db.relationship('Message', backref='conversation', lazy=True, cascade='all, delete-orphan')
+
 class Message(db.Model):
     __tablename__ = 'messages'
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    conversation_id = db.Column(db.Integer, db.ForeignKey('conversations.id'), nullable=True)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_read = db.Column(db.Boolean, default=False)
