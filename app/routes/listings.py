@@ -28,7 +28,15 @@ def browse():
     )
     
     if city and city != "":
-        query = query.filter(Listing.city == city)
+        city_alternatives = [city]
+        if city in CITY_TRANSLATIONS:
+            city_alternatives.append(CITY_TRANSLATIONS[city])
+        else:
+            for eng, ara in CITY_TRANSLATIONS.items():
+                if city == ara:
+                    city_alternatives.append(eng)
+                    break
+        query = query.filter(Listing.city.in_(city_alternatives))
         
     if q and q != "":
         search_terms = {q.lower()}
